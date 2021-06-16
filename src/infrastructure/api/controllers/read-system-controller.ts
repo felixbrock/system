@@ -4,7 +4,7 @@ import {
   ReadSystem,
   ReadSystemRequestDto,
   ReadSystemResponseDto,
-} from '../../../domain/use-cases/read-system';
+} from '../../../domain/system/read-system';
 import { BaseController, CodeHttp } from '../../shared';
 
 export default class ReadSystemController extends BaseController {
