@@ -6,10 +6,10 @@ import { UpdateSystem } from './system/update-system';
 export default class SystemDomain {
   #createSystem: CreateSystem;
 
-  #updateSystem: UpdateSystem
+  #updateSystem: UpdateSystem;
 
   #createWarning: CreateWarning;
-  
+
   #readSystem: ReadSystem;
 
   public get createSystem(): CreateSystem {
@@ -20,16 +20,20 @@ export default class SystemDomain {
     return this.#updateSystem;
   }
 
-  public get createWarning(): CreateWarning{
+  public get createWarning(): CreateWarning {
     return this.#createWarning;
   }
 
-  public get readSystem() : ReadSystem {
+  public get readSystem(): ReadSystem {
     return this.#readSystem;
   }
 
-  
-    constructor(createSystem: CreateSystem, updateSystem: UpdateSystem, createWarning: CreateWarning, readSystem : ReadSystem) {
+  constructor(
+    createSystem: CreateSystem,
+    updateSystem: UpdateSystem,
+    createWarning: CreateWarning,
+    readSystem: ReadSystem
+  ) {
     this.#createSystem = createSystem;
     this.#updateSystem = updateSystem;
     this.#readSystem = readSystem;
