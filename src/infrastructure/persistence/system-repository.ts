@@ -16,7 +16,7 @@ interface SystemPersistence {
   // eslint-disable-next-line semi
 }
 
-export default class CreateSelectorRepositoryImpl implements ISystemRepository {
+export default class SystemRepositoryImpl implements ISystemRepository {
   public findById = async (id: string): Promise<System | null> => {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
