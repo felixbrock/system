@@ -1,9 +1,9 @@
-import { Warning } from '../value-types';
+import WarningDto from "../warning/warning-dto";
 
 export default interface SystemDto {
   id: string;
   name: string;
-  warnings: Warning[];
+  warnings: WarningDto[];
   modifiedOn: number;
   // eslint-disable-next-line semi
 }

@@ -37,11 +37,11 @@ export class UpdateSystem
           `System with id ${request.id} does not exist`
         );
 
-      this.#modifySystem(system, request);
+      const modifiedSystem = this.#modifySystem(system, request);
 
-      await this.#systemRepository.update(system);
+      await this.#systemRepository.update(modifiedSystem);
 
-      return Result.ok<SystemDto>(this.#buildSystemDto(system));
+      return Result.ok<SystemDto>(this.#buildSystemDto(modifiedSystem));
     } catch (error) {
       return Result.fail<SystemDto>(error.message);
     }
