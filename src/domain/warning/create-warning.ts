@@ -36,7 +36,7 @@ export class CreateWarning
     try {
       const validatedRequest = await this.validateRequest(request.systemId);
       if (validatedRequest.error)
-        return Result.fail<WarningDto>(validatedRequest.error);
+        throw new Error(validatedRequest.error);
 
       const warningDto = this.#buildWarningDto(warning.value);
 
@@ -47,9 +47,9 @@ export class CreateWarning
         });
 
       if (updateSystemResult.error)
-        return Result.fail<null>(updateSystemResult.error);
+        throw new Error(updateSystemResult.error);
       if (!updateSystemResult.value)
-        return Result.fail<null>(
+        throw new Error(
           `Couldn't update system ${request.systemId}`
         );
 

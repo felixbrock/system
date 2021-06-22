@@ -32,7 +32,7 @@ export class CreateSystem
       const readSystemResult: SystemDto | null =
         await this.#systemRepository.findByName(system.value.name);
       if (readSystemResult)
-        return Result.fail<null>(
+        throw new Error(
           `System ${readSystemResult.name} is already registered under ${readSystemResult.id}`
         );
 

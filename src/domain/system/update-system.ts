@@ -7,6 +7,7 @@ import Result from '../value-types/transient-types';
 import { Warning } from '../value-types';
 import WarningDto from '../warning/warning-dto';
 
+// TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {
   id: string;
   name?: string;
@@ -33,7 +34,7 @@ export class UpdateSystem
       );
 
       if (!system)
-        return Result.fail<SystemDto>(
+        throw new Error(
           `System with id ${request.id} does not exist`
         );
 

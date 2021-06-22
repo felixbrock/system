@@ -3,6 +3,7 @@ import path from 'path';
 import { System, SystemProperties } from '../../domain/entities';
 import ISystemRepository from '../../domain/system/i-system-repository';
 import { Warning } from '../../domain/value-types';
+import Result from '../../domain/value-types/transient-types';
 
 interface WarningPersistence {
   createdOn: number;
@@ -27,8 +28,8 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const result: SystemPersistence = db.systems.find(
       (systemEntity: { id: string }) => systemEntity.id === id
     );
-    
-    if(!result) return null;
+
+    if (!result) return null;
     return this.#toEntity(this.#buildProperties(result));
   };
 
@@ -43,45 +44,56 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       (systemEntity: { name: string }) => systemEntity.name === name
     );
 
-    if(!result) return null;
+    if (!result) return null;
     return this.#toEntity(this.#buildProperties(result));
   };
 
-  public async save(system: System): Promise<void> {
+  public async save(system: System): Promise<Result<null>> {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'
     );
     const db = JSON.parse(data);
+    try {
+      db.systems.push(this.#toPersistence(system));
 
-    db.systems.push(this.#toPersistence(system));
+      fs.writeFileSync(
+        path.resolve(__dirname, '../../../db.json'),
+        JSON.stringify(db),
+        'utf-8'
+      );
 
-    fs.writeFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      JSON.stringify(db),
-      'utf-8'
-    );
+      return Result.ok<null>();
+    } catch (error) {
+      return Result.fail<null>(error.message);
+    }
   }
 
-  public async update(system: System): Promise<void> {
+  public async update(system: System): Promise<Result<null>> {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'
     );
     const db = JSON.parse(data);
 
-    for (let i = 0; i < db.systems.length; i += 1) {
-      if (db.systems[i].id === system.id) {
-        db.systems[i] = this.#toPersistence(system);
-        break;
+    try {
+      for (let i = 0; i < db.systems.length; i += 1) {
+        if (db.systems[i].id === system.id) {
+          db.systems[i] = this.#toPersistence(system);
+          break;
+        }
       }
-    }
 
-    fs.writeFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      JSON.stringify(db),
-      'utf-8'
-    );
+      fs.writeFileSync(
+        path.resolve(__dirname, '../../../db.json'),
+        JSON.stringify(db),
+        'utf-8'
+      );
+
+      return Result.ok<null>();
+    } catch (error) {
+      return Result.fail<null>(error.message);
+    }
   }
 
   #toEntity = (systemProperties: SystemProperties): System | null =>

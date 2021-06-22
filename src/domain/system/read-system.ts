@@ -26,7 +26,7 @@ export class ReadSystem
       const system: System | null =
         await this.#systemRepository.findById(request.id);
       if (!system)
-        return Result.fail<null>(
+        throw new Error(
           `System with id ${request.id} does not exist`
         );
 
