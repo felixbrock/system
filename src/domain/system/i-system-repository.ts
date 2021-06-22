@@ -6,5 +6,6 @@ export default interface ISystemRepository {
   findByName(name: string): Promise<System | null>;
   update(system: System): Promise<Result<null>>;
   save(system: System): Promise<Result<null>>;
+  delete(systemId: string): Promise<Result<null>>;
   // eslint-disable-next-line semi
 }

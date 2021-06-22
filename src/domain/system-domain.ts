@@ -2,15 +2,22 @@ import { CreateSystem } from './system/create-system';
 import { CreateWarning } from './warning/create-warning';
 import { ReadSystem } from './system/read-system';
 import { UpdateSystem } from './system/update-system';
+import { DeleteSystem } from './system/delete-system';
 
 export default class SystemDomain {
+  #readSystem: ReadSystem;
+
   #createSystem: CreateSystem;
 
   #updateSystem: UpdateSystem;
 
+  #deleteSystem: DeleteSystem;
+
   #createWarning: CreateWarning;
 
-  #readSystem: ReadSystem;
+  public get readSystem(): ReadSystem {
+    return this.#readSystem;
+  }
 
   public get createSystem(): CreateSystem {
     return this.#createSystem;
@@ -20,23 +27,25 @@ export default class SystemDomain {
     return this.#updateSystem;
   }
 
+  public get deleteSystem(): DeleteSystem {
+    return this.#deleteSystem;
+  }
+
   public get createWarning(): CreateWarning {
     return this.#createWarning;
   }
 
-  public get readSystem(): ReadSystem {
-    return this.#readSystem;
-  }
-
   constructor(
+    readSystem: ReadSystem,
     createSystem: CreateSystem,
     updateSystem: UpdateSystem,
-    createWarning: CreateWarning,
-    readSystem: ReadSystem
+    deleteSystem: DeleteSystem,
+    createWarning: CreateWarning
   ) {
+    this.#readSystem = readSystem;
     this.#createSystem = createSystem;
     this.#updateSystem = updateSystem;
-    this.#readSystem = readSystem;
+    this.#deleteSystem = deleteSystem;
     this.#createWarning = createWarning;
   }
 }
