@@ -1,9 +1,22 @@
 import { System } from "../entities";
 import Result from "../value-types/transient-types";
 
-export default interface ISystemRepository {
+export interface SystemQueryDto {
+  name?: string;
+  warning?: WarningQueryDto;
+  modifiedOn?: number;
+}
+
+export interface WarningQueryDto {
+  createdOn?: number;
+}
+
+export interface ISystemRepository {
   findOne(id: string): Promise<System | null>;
-  findByName(name: string): Promise<System | null>;
+  findBy(
+    subscriptionQueryDto: SystemQueryDto
+  ): Promise<System[]>;
+  all(): Promise<System[]>;
   update(system: System): Promise<Result<null>>;
   save(system: System): Promise<Result<null>>;
   delete(systemId: string): Promise<Result<null>>;

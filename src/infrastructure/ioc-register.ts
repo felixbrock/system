@@ -11,6 +11,7 @@ import { UpdateSystem } from '../domain/system/update-system';
 import { DeleteSystem } from '../domain/system/delete-system';
 import { DeleteSelectors } from '../domain/selector-api/delete-selectors';
 import SelectorApiRepository from './persistence/selector-api-repository';
+import { ReadSystems } from '../domain/system/read-systems';
 
 const iocRegister = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -18,6 +19,7 @@ iocRegister.register({
   systemDomain: asClass(SystemDomain),
 
   readSystem: asClass(ReadSystem),
+  readSystems: asClass(ReadSystems),
   createSystem: asClass(CreateSystem),
   updateSystem: asClass(UpdateSystem),
   deleteSystem: asClass(DeleteSystem),

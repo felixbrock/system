@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { System, SystemProperties } from '../../domain/entities';
-import ISystemRepository from '../../domain/system/i-system-repository';
+import {ISystemRepository, SystemQueryDto, WarningQueryDto } from '../../domain/system/i-system-repository';
 import { Warning } from '../../domain/value-types';
 import Result from '../../domain/value-types/transient-types';
 
@@ -33,20 +33,67 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     return this.#toEntity(this.#buildProperties(result));
   };
 
-  public findByName = async (name: string): Promise<System | null> => {
+  public async findBy(systemQueryDto: SystemQueryDto): Promise<System[]> {
+    if (!Object.keys(systemQueryDto).length) return this.all();
+
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'
     );
     const db = JSON.parse(data);
 
-    const result = db.systems.find(
-      (systemEntity: { name: string }) => systemEntity.name === name
+    const systems: SystemPersistence[] = db.systems.filter(
+      (systemEntity: SystemPersistence) =>
+        this.findByCallback(systemEntity, systemQueryDto)
     );
 
-    if (!result) return null;
-    return this.#toEntity(this.#buildProperties(result));
-  };
+    if (!systems || !!systems.length) return [];
+    return systems.map((system: SystemPersistence) =>
+      this.#toEntity(this.#buildProperties(system))
+    );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private findByCallback(
+    systemEntity: SystemPersistence,
+    systemQueryDto: SystemQueryDto
+  ): boolean {
+    const nameMatch = systemQueryDto.name
+      ? systemEntity.name === systemQueryDto.name
+      : true;
+    const modifiedOnMatch = systemQueryDto.modifiedOn
+      ? systemEntity.modifiedOn === systemQueryDto.modifiedOn
+      : true;
+
+    let warningMatch: boolean;
+    if (systemQueryDto.warning === true) {
+      const queryTarget: WarningQueryDto = systemQueryDto.warning;
+      const result: WarningPersistence | undefined = systemEntity.warnings.find(
+        (warning: WarningPersistence) =>
+          queryTarget.createdOn
+            ? warning.createdOn === queryTarget.createdOn
+            : true
+      );
+      warningMatch = !!result;
+    } else warningMatch = true;
+
+    return nameMatch && modifiedOnMatch && warningMatch;
+  }
+
+  public async all(): Promise<System[]> {
+    const data: string = fs.readFileSync(
+      path.resolve(__dirname, '../../../db.json'),
+      'utf-8'
+    );
+    const db = JSON.parse(data);
+
+    const { systems } = db;
+
+    if (!systems || !systems.length) return [];
+    return systems.map((system: SystemPersistence) =>
+      this.#toEntity(this.#buildProperties(system))
+    );
+  }
 
   public async save(system: System): Promise<Result<null>> {
     const data: string = fs.readFileSync(
@@ -112,7 +159,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
       if (systems.length === db.systems.length)
         throw new Error(
-          `Selector with id ${id} does not exist`
+          `System with id ${id} does not exist`
         );
 
       db.systems = systems;
@@ -129,8 +176,16 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     }
   }
 
-  #toEntity = (systemProperties: SystemProperties): System | null =>
-    System.create(systemProperties).value || null;
+  #toEntity = (systemProperties: SystemProperties): System => {
+    const createSystemResult: Result<System> =
+      System.create(systemProperties);
+
+    if (createSystemResult.error) throw new Error(createSystemResult.error);
+    if (!createSystemResult.value)
+      throw new Error('System creation failed');
+
+    return createSystemResult.value;
+  };
 
   #buildProperties = (system: SystemPersistence): SystemProperties => ({
     id: system.id,

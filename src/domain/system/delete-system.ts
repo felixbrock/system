@@ -1,8 +1,8 @@
 import Result from '../value-types/transient-types';
 import IUseCase from '../services/use-case';
-import ISystemRepository from './i-system-repository';
 import { System } from '../entities';
 import { DeleteSelectors } from '../selector-api/delete-selectors';
+import { ISystemRepository } from './i-system-repository';
 
 export interface DeleteSystemRequestDto {
   id: string;

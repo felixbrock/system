@@ -3,8 +3,8 @@ import IUseCase from '../services/use-case';
 import { Warning } from '../value-types';
 import WarningDto from './warning-dto';
 import SystemDto from '../system/system-dto';
-import ISystemRepository from '../system/i-system-repository';
 import { UpdateSystem } from '../system/update-system';
+import { ISystemRepository } from '../system/i-system-repository';
 
 export interface CreateWarningRequestDto {
   systemId: string;

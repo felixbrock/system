@@ -2,10 +2,10 @@
 import IUseCase from '../services/use-case';
 import { System } from '../entities';
 import SystemDto from './system-dto';
-import ISystemRepository from './i-system-repository';
 import Result from '../value-types/transient-types';
 import { Warning } from '../value-types';
 import WarningDto from '../warning/warning-dto';
+import { ISystemRepository } from './i-system-repository';
 
 // TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {

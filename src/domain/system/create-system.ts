@@ -5,7 +5,7 @@ import IUseCase from '../services/use-case';
 import { Id } from '../value-types';
 import { System, SystemProperties } from '../entities';
 import SystemDto from './system-dto';
-import ISystemRepository from './i-system-repository';
+import { ISystemRepository } from './i-system-repository';
 
 export interface CreateSystemRequestDto {
   name: string;
@@ -29,11 +29,11 @@ export class CreateSystem
     if (!system.value) return system;
 
     try {
-      const readSystemResult: SystemDto | null =
-        await this.#systemRepository.findByName(system.value.name);
-      if (readSystemResult)
+      const readSystemResult: SystemDto[] =
+        await this.#systemRepository.findBy({name: system.value.name});
+      if (readSystemResult.length)
         throw new Error(
-          `System ${readSystemResult.name} is already registered under ${readSystemResult.id}`
+          `System ${readSystemResult[0].name} is already registered under ${readSystemResult[0].id}`
         );
 
       await this.#systemRepository.save(system.value);
