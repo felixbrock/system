@@ -18,7 +18,7 @@ interface SystemPersistence {
 }
 
 export default class SystemRepositoryImpl implements ISystemRepository {
-  public findById = async (id: string): Promise<System | null> => {
+  public findOne = async (id: string): Promise<System | null> => {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'

@@ -24,7 +24,7 @@ export class ReadSystem
   ): Promise<ReadSystemResponseDto> {
     try {
       const system: System | null =
-        await this.#systemRepository.findById(request.id);
+        await this.#systemRepository.findOne(request.id);
       if (!system)
         throw new Error(
           `System with id ${request.id} does not exist`

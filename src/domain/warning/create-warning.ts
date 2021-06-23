@@ -60,7 +60,7 @@ export class CreateWarning
   }
 
   private async validateRequest(systemId: string): Promise<Result<null>> {
-    const system: SystemDto | null = await this.#systemRepository.findById(
+    const system: SystemDto | null = await this.#systemRepository.findOne(
       systemId
     );
     if (!system)

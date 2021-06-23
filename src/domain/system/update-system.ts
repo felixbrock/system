@@ -29,7 +29,7 @@ export class UpdateSystem
     request: UpdateSystemRequestDto
   ): Promise<UpdateSystemResponseDto> {
     try {
-      const system: System | null = await this.#systemRepository.findById(
+      const system: System | null = await this.#systemRepository.findOne(
         request.id
       );
 

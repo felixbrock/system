@@ -29,7 +29,7 @@ export class DeleteSystem
     request: DeleteSystemRequestDto
   ): Promise<DeleteSystemResponseDto> {
     try {
-      const system: System | null = await this.#systemRepository.findById(
+      const system: System | null = await this.#systemRepository.findOne(
         request.id
       );
       if (!system)
