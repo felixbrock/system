@@ -1,7 +1,7 @@
 import express, { Application } from 'express';
 // TODO Check for good express middleware http://expressjs.com/en/resources/middleware/compression.html
 // import compression from "compression";
-// import cors from "cors";
+import cors from "cors";
 // import helmet from "helmet";
 // import morgan from "morgan";
 import v1Router from './routes/v1';
@@ -38,7 +38,7 @@ export default class ExpressApp {
   private configApp(): void {
     this.#expressApp.use(express.json());
     this.#expressApp.use(express.urlencoded({ extended: true }));
-    // this.#expressApp.use(cors());
+    this.#expressApp.use(cors());
     // this.#expressApp.use(compression());
     // this.#expressApp.use(morgan("combined"));
     // this.#expressApp.use(helmet());

@@ -1,6 +1,6 @@
 import Result from '../value-types/transient-types';
 import IUseCase from '../services/use-case';
-import SystemDto from './system-dto';
+import { SystemDto } from './system-dto';
 import { System } from '../entities';
 import { ISystemRepository } from './i-system-repository';
 
@@ -23,12 +23,11 @@ export class ReadSystem
     request: ReadSystemRequestDto
   ): Promise<ReadSystemResponseDto> {
     try {
-      const system: System | null =
-        await this.#systemRepository.findOne(request.id);
+      const system: System | null = await this.#systemRepository.findOne(
+        request.id
+      );
       if (!system)
-        throw new Error(
-          `System with id ${request.id} does not exist`
-        );
+        throw new Error(`System with id ${request.id} does not exist`);
 
       return Result.ok<SystemDto>(system);
     } catch (error) {

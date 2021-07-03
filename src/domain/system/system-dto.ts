@@ -1,9 +1,16 @@
-import WarningDto from "../warning/warning-dto";
+import { System } from '../entities';
+import { WarningDto } from '../warning/warning-dto';
 
-export default interface SystemDto {
+export interface SystemDto {
   id: string;
   name: string;
   warnings: WarningDto[];
   modifiedOn: number;
-  // eslint-disable-next-line semi
-}
+};
+
+export const buildSystemDto = (system: System): SystemDto => ({
+  id: system.id,
+  name: system.name,
+  warnings: system.warnings,
+  modifiedOn: system.modifiedOn,
+});

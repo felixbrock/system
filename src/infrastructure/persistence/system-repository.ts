@@ -80,7 +80,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     return nameMatch && modifiedOnMatch && warningMatch;
   }
 
-  public async all(): Promise<System[]> {
+  all = async (): Promise<System[]> => {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'

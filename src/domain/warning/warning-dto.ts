@@ -1,4 +1,9 @@
-export default interface WarningDto {
+import { Warning } from "../value-types";
+
+export interface WarningDto {
   createdOn: number;
-  // eslint-disable-next-line semi
-}
+};
+
+export const buildWarningDto = (warning: Warning): WarningDto => ({
+  createdOn: warning.createdOn,
+});

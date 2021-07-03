@@ -1,10 +1,8 @@
 import { System } from '../entities';
 import IUseCase from '../services/use-case';
-import WarningDto from '../warning/warning-dto';
 import Result from '../value-types/transient-types';
 import {ISystemRepository, SystemQueryDto } from './i-system-repository';
-import SystemDto from './system-dto';
-import { Warning } from '../value-types';
+import {SystemDto, buildSystemDto } from './system-dto';
 
 export interface ReadSystemsRequestDto {
   name?: string;
@@ -30,31 +28,23 @@ export class ReadSystems
       if (!systems) throw new Error(`Queried systems do not exist`);
 
       return Result.ok<SystemDto[]>(
-        systems.map((system) => this.#buildSystemDto(system))
+        systems.map((system) => buildSystemDto(system))
       );
     } catch (error) {
       return Result.fail<null>(error.message);
     }
   }
 
-  #buildSystemDto = (system: System): SystemDto => ({
-    id: system.id,
-    name: system.name,
-    warnings: system.warnings.map(
-      (warning): WarningDto => this.#buildWarningDto(warning)
-    ),
-    modifiedOn: system.modifiedOn,
-  });
-
-  #buildWarningDto = (warning: Warning): WarningDto => ({
-    createdOn: warning.createdOn,
-  });
-
   #buildSystemQueryDto = (
     request: ReadSystemsRequestDto
-  ): SystemQueryDto => ({
-    name: request.name,
-    warning: request.warning,
-    modifiedOn: request.modifiedOn
-  });
+  ): SystemQueryDto => {
+
+    const queryDto : SystemQueryDto = {};
+
+    if(request.name) queryDto.name = request.name;
+    if(request.warning && request.warning.createdOn) queryDto.warning = request.warning;
+    if(request.modifiedOn) queryDto.modifiedOn = request.modifiedOn;
+    
+    return queryDto;
+  };
 }

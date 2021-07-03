@@ -4,7 +4,7 @@ import Result from '../value-types/transient-types';
 import IUseCase from '../services/use-case';
 import { Id } from '../value-types';
 import { System, SystemProperties } from '../entities';
-import SystemDto from './system-dto';
+import { SystemDto, buildSystemDto } from './system-dto';
 import { ISystemRepository } from './i-system-repository';
 
 export interface CreateSystemRequestDto {
@@ -29,8 +29,9 @@ export class CreateSystem
     if (!system.value) return system;
 
     try {
-      const readSystemResult: SystemDto[] =
-        await this.#systemRepository.findBy({name: system.value.name});
+      const readSystemResult: SystemDto[] = await this.#systemRepository.findBy(
+        { name: system.value.name }
+      );
       if (readSystemResult.length)
         throw new Error(
           `System ${readSystemResult[0].name} is already registered under ${readSystemResult[0].id}`
@@ -38,18 +39,11 @@ export class CreateSystem
 
       await this.#systemRepository.save(system.value);
 
-      return Result.ok<SystemDto>(this.#buildSystemDto(system.value));
+      return Result.ok<SystemDto>(buildSystemDto(system.value));
     } catch (error) {
       return Result.fail<SystemDto>(error.message);
     }
   }
-
-  #buildSystemDto = (system: System): SystemDto => ({
-    id: system.id,
-    name: system.name,
-    warnings: system.warnings,
-    modifiedOn: system.modifiedOn,
-  });
 
   #createSystem = (request: CreateSystemRequestDto): Result<System | null> => {
     const systemProperties: SystemProperties = {

@@ -1,8 +1,8 @@
 import Result from '../value-types/transient-types';
 import IUseCase from '../services/use-case';
 import { Warning } from '../value-types';
-import WarningDto from './warning-dto';
-import SystemDto from '../system/system-dto';
+import { buildWarningDto, WarningDto } from './warning-dto';
+import { SystemDto } from '../system/system-dto';
 import { UpdateSystem } from '../system/update-system';
 import { ISystemRepository } from '../system/i-system-repository';
 
@@ -35,10 +35,9 @@ export class CreateWarning
 
     try {
       const validatedRequest = await this.validateRequest(request.systemId);
-      if (validatedRequest.error)
-        throw new Error(validatedRequest.error);
+      if (validatedRequest.error) throw new Error(validatedRequest.error);
 
-      const warningDto = this.#buildWarningDto(warning.value);
+      const warningDto = buildWarningDto(warning.value);
 
       const updateSystemResult: Result<SystemDto | null> =
         await this.#updateSystem.execute({
@@ -46,12 +45,9 @@ export class CreateWarning
           warning: warningDto,
         });
 
-      if (updateSystemResult.error)
-        throw new Error(updateSystemResult.error);
+      if (updateSystemResult.error) throw new Error(updateSystemResult.error);
       if (!updateSystemResult.value)
-        throw new Error(
-          `Couldn't update system ${request.systemId}`
-        );
+        throw new Error(`Couldn't update system ${request.systemId}`);
 
       return Result.ok<WarningDto>(warningDto);
     } catch (error) {
@@ -68,10 +64,6 @@ export class CreateWarning
 
     return Result.ok<null>(null);
   }
-
-  #buildWarningDto = (warning: Warning): WarningDto => ({
-    createdOn: warning.createdOn,
-  });
 
   #createWarning = (): Result<Warning | null> => Warning.create();
 }
