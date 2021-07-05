@@ -1,6 +1,6 @@
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import { Warning } from '../value-types';
+import Warning from '../value-types/warning';
 import { buildWarningDto, WarningDto } from './warning-dto';
 import { SystemDto } from '../system/system-dto';
 import { UpdateSystem } from '../system/update-system';

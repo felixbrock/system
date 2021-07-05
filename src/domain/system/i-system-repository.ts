@@ -1,5 +1,5 @@
-import { System } from "../entities";
-import Result from "../value-types/transient-types";
+import { System } from "../entities/system";
+import Result from "../value-types/transient-types/result";
 
 export interface SystemQueryDto {
   name?: string;

@@ -1,4 +1,4 @@
-import { System } from '../entities';
+import { System } from '../entities/system';
 import { buildWarningDto, WarningDto } from '../warning/warning-dto';
 
 export interface SystemDto {

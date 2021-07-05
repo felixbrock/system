@@ -1,9 +1,9 @@
 // TODO Violation of Dependency Rule
 import IUseCase from '../services/use-case';
-import { System } from '../entities';
+import { System } from '../entities/system';
 import { SystemDto, buildSystemDto } from './system-dto';
-import Result from '../value-types/transient-types';
-import { Warning } from '../value-types';
+import Result from '../value-types/transient-types/result';
+import Warning from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
 import { ISystemRepository } from './i-system-repository';
 

@@ -1,4 +1,4 @@
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
 
 export interface DeleteSelectorsRequestDto {

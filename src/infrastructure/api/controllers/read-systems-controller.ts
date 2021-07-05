@@ -5,8 +5,8 @@ import {
   ReadSystemsRequestDto,
   ReadSystemsResponseDto,
 } from '../../../domain/system/read-systems';
-import Result from '../../../domain/value-types/transient-types';
-import { BaseController, CodeHttp } from '../../shared';
+import Result from '../../../domain/value-types/transient-types/result';
+import { BaseController, CodeHttp } from '../../shared/base-controller';
 
 export default class ReadSystemsController extends BaseController {
   #readSystems: ReadSystems;

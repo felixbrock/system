@@ -1,4 +1,4 @@
-import Result from './transient-types';
+import Result from './transient-types/result';
 
 export default class Warning {
   #createdOn: number;

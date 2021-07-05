@@ -1,6 +1,6 @@
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import { System } from '../entities';
+import { System } from '../entities/system';
 import { DeleteSelectors } from '../selector-api/delete-selectors';
 import { ISystemRepository } from './i-system-repository';
 

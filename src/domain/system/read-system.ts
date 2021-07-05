@@ -1,7 +1,7 @@
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
 import { SystemDto } from './system-dto';
-import { System } from '../entities';
+import { System } from '../entities/system';
 import { ISystemRepository } from './i-system-repository';
 
 export interface ReadSystemRequestDto {

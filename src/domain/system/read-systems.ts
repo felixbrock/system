@@ -1,6 +1,6 @@
-import { System } from '../entities';
+import { System } from '../entities/system';
 import IUseCase from '../services/use-case';
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import {ISystemRepository, SystemQueryDto } from './i-system-repository';
 import {SystemDto, buildSystemDto } from './system-dto';
 

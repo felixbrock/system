@@ -5,7 +5,7 @@ import {
   DeleteSystemRequestDto,
   DeleteSystemResponseDto,
 } from '../../../domain/system/delete-system';
-import { BaseController, CodeHttp } from '../../shared';
+import { BaseController, CodeHttp } from '../../shared/base-controller';
 
 export default class DeleteSystemController extends BaseController {
   #deleteSystem: DeleteSystem;

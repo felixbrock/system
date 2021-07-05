@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { System, SystemProperties } from '../../domain/entities';
+import { System, SystemProperties } from '../../domain/entities/system';
 import {ISystemRepository, SystemQueryDto, WarningQueryDto } from '../../domain/system/i-system-repository';
-import { Warning } from '../../domain/value-types';
-import Result from '../../domain/value-types/transient-types';
+import Warning from '../../domain/value-types/warning';
+import Result from '../../domain/value-types/transient-types/result';
 
 interface WarningPersistence {
   createdOn: number;

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { CreateSystemController, ReadSystemController } from '../controllers';
+import CreateSystemController from '../controllers/create-system-controller';
+import ReadSystemController from '../controllers/read-system-controller';
 import app from '../../ioc-register';
 import SystemDomain from '../../../domain/system-domain';
 import CreateWarningController from '../controllers/create-warning-controller';

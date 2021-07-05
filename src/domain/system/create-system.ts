@@ -1,9 +1,9 @@
 // TODO Violation of Dependency Rule
 import { v4 as uuidv4 } from 'uuid';
-import Result from '../value-types/transient-types';
+import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import { Id } from '../value-types';
-import { System, SystemProperties } from '../entities';
+import Id from '../value-types/id';
+import { System, SystemProperties } from '../entities/system';
 import { SystemDto, buildSystemDto } from './system-dto';
 import { ISystemRepository } from './i-system-repository';
 

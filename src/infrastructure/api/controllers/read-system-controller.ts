@@ -5,7 +5,7 @@ import {
   ReadSystemRequestDto,
   ReadSystemResponseDto,
 } from '../../../domain/system/read-system';
-import { BaseController, CodeHttp } from '../../shared';
+import { BaseController, CodeHttp } from '../../shared/base-controller';
 
 export default class ReadSystemController extends BaseController {
   #readSystem: ReadSystem;

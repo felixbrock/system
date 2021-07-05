@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
 import { ISelectorApiRepository } from '../../domain/selector-api/delete-selectors';
-import Result from '../../domain/value-types/transient-types';
+import Result from '../../domain/value-types/transient-types/result';
 
 const apiRoot = 'http://localhost:3000/api/v1';
 

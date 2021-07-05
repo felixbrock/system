@@ -1,8 +1,8 @@
 // TODO: Violation of control flow. DI for express instead
 import { Request, Response } from 'express';
-import Result from '../../../domain/value-types/transient-types';
+import Result from '../../../domain/value-types/transient-types/result';
 import { CreateWarning, CreateWarningRequestDto, CreateWarningResponseDto } from '../../../domain/warning/create-warning';
-import { BaseController, CodeHttp } from '../../shared';
+import { BaseController, CodeHttp } from '../../shared/base-controller';
 
 export default class CreateWarningController extends BaseController {
   #createWarning: CreateWarning;
