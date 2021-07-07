@@ -1,8 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { System, SystemProperties } from '../../domain/entities/system';
-import {ISystemRepository, SystemQueryDto, WarningQueryDto } from '../../domain/system/i-system-repository';
-import Warning from '../../domain/value-types/warning';
+import {
+  ISystemRepository,
+  SystemQueryDto,
+  WarningQueryDto,
+} from '../../domain/system/i-system-repository';
+import {Warning} from '../../domain/value-types/warning';
 import Result from '../../domain/value-types/transient-types/result';
 
 interface WarningPersistence {
@@ -93,7 +97,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     return systems.map((system: SystemPersistence) =>
       this.#toEntity(this.#buildProperties(system))
     );
-  }
+  };
 
   public async save(system: System): Promise<Result<null>> {
     const data: string = fs.readFileSync(
@@ -144,7 +148,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async delete(id: string) : Promise<Result<null>> {
+  public async delete(id: string): Promise<Result<null>> {
     const data: string = fs.readFileSync(
       path.resolve(__dirname, '../../../db.json'),
       'utf-8'
@@ -153,14 +157,11 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
     try {
       const systems: SystemPersistence[] = db.systems.filter(
-        (systemEntity: { id: string }) =>
-          systemEntity.id !== id
+        (systemEntity: { id: string }) => systemEntity.id !== id
       );
 
       if (systems.length === db.systems.length)
-        throw new Error(
-          `System with id ${id} does not exist`
-        );
+        throw new Error(`System with id ${id} does not exist`);
 
       db.systems = systems;
 
@@ -177,12 +178,10 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   }
 
   #toEntity = (systemProperties: SystemProperties): System => {
-    const createSystemResult: Result<System> =
-      System.create(systemProperties);
+    const createSystemResult: Result<System> = System.create(systemProperties);
 
     if (createSystemResult.error) throw new Error(createSystemResult.error);
-    if (!createSystemResult.value)
-      throw new Error('System creation failed');
+    if (!createSystemResult.value) throw new Error('System creation failed');
 
     return createSystemResult.value;
   };
@@ -192,7 +191,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     name: system.name,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map((warning) => {
-      const warningResult = Warning.create();
+      const warningResult = Warning.create({ createdOn: warning.createdOn });
       if (warningResult.value) return warningResult.value;
       throw new Error(
         warningResult.error || `Creation of system warning ${warning} failed`

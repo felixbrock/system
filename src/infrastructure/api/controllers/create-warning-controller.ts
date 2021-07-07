@@ -15,13 +15,13 @@ export default class CreateWarningController extends BaseController {
   #buildRequestDto = (
     httpRequest: Request
   ): Result<CreateWarningRequestDto> => {
-    const { systemId } = httpRequest.query;
-    if (typeof systemId === 'string')
+    const { systemId } = httpRequest.params;
+    if (systemId)
       return Result.ok<CreateWarningRequestDto>({
         systemId,
       });
     return Result.fail<CreateWarningRequestDto>(
-      'request query parameter subscriptionId is supposed to be in string format'
+      'Cannot find request parameter systemId'
     );
   };
 

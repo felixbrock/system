@@ -1,4 +1,4 @@
-import Warning from "../value-types/warning";
+import {Warning} from "../value-types/warning";
 
 export interface WarningDto {
   createdOn: number;

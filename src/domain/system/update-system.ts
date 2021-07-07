@@ -3,7 +3,7 @@ import IUseCase from '../services/use-case';
 import { System } from '../entities/system';
 import { SystemDto, buildSystemDto } from './system-dto';
 import Result from '../value-types/transient-types/result';
-import Warning from '../value-types/warning';
+import {Warning} from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
 import { ISystemRepository } from './i-system-repository';
 
@@ -52,7 +52,7 @@ export class UpdateSystem
     systemToModify.name = request.name || system.name;
 
     if (request.warning) {
-      const warningResult = Warning.create();
+      const warningResult = Warning.create({});
       // TODO No uniform usage of Result.value Result.error and result.success. Fix.
       if (warningResult.error) throw new Error(warningResult.error);
       if (!warningResult.value)

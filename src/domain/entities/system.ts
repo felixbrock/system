@@ -1,4 +1,4 @@
-import Warning from '../value-types/warning';
+import {Warning} from '../value-types/warning';
 import Result from '../value-types/transient-types/result';
 
 export interface SystemProperties {
