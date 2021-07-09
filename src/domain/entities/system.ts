@@ -1,4 +1,4 @@
-import {Warning} from '../value-types/warning';
+import { Warning } from '../value-types/warning';
 import Result from '../value-types/transient-types/result';
 
 export interface SystemProperties {
@@ -40,9 +40,6 @@ export class System {
   }
 
   public set modifiedOn(modifiedOn: number) {
-    if (!System.timestampIsValid(modifiedOn))
-      throw new Error('ModifiedOn value lies in the past');
-
     this.#modifiedOn = modifiedOn;
   }
 
@@ -54,22 +51,12 @@ export class System {
   }
 
   public static create(properties: SystemProperties): Result<System> {
-    if (
-      properties.modifiedOn &&
-      !System.timestampIsValid(properties.modifiedOn)
-    )
-      if (!properties.id) return Result.fail('System must have id');
+    if (!properties.id) return Result.fail('System must have id');
     if (!properties.name) return Result.fail('System must have name');
 
     const system = new System(properties);
     return Result.ok<System>(system);
   }
-
-  public static timestampIsValid = (timestamp: number): boolean => {
-    const minute = 60 * 1000;
-    if (timestamp && timestamp < Date.now() - minute) return false;
-    return true;
-  };
 
   public addWarning(warning: Warning): void {
     this.#warnings.push(warning);

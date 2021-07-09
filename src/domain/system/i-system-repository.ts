@@ -4,11 +4,13 @@ import Result from "../value-types/transient-types/result";
 export interface SystemQueryDto {
   name?: string;
   warning?: WarningQueryDto;
-  modifiedOn?: number;
+  modifiedOnStart?: number;
+  modifiedOnEnd?: number;
 }
 
 export interface WarningQueryDto {
-  createdOn?: number;
+  createdOnStart?: number;
+  createdOnEnd?: number;
 }
 
 export interface ISystemRepository {

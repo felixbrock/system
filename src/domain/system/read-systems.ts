@@ -1,13 +1,14 @@
 import { System } from '../entities/system';
 import IUseCase from '../services/use-case';
 import Result from '../value-types/transient-types/result';
-import {ISystemRepository, SystemQueryDto } from './i-system-repository';
-import {SystemDto, buildSystemDto } from './system-dto';
+import { ISystemRepository, SystemQueryDto } from './i-system-repository';
+import { SystemDto, buildSystemDto } from './system-dto';
 
 export interface ReadSystemsRequestDto {
   name?: string;
-  warning?: { createdOn?: number };
-  modifiedOn?: number;
+  warning?: { createdOnStart?: number; createdOnEnd?: number };
+  modifiedOnStart?: number;
+  modifiedOnEnd?: number;
 }
 
 export type ReadSystemsResponseDto = Result<SystemDto[] | null>;
@@ -21,10 +22,13 @@ export class ReadSystems
     this.#systemRepository = systemRepository;
   }
 
-  public async execute(request: ReadSystemsRequestDto): Promise<ReadSystemsResponseDto> {
+  public async execute(
+    request: ReadSystemsRequestDto
+  ): Promise<ReadSystemsResponseDto> {
     try {
-      const systems: System[] | null =
-        await this.#systemRepository.findBy(this.#buildSystemQueryDto(request));
+      const systems: System[] | null = await this.#systemRepository.findBy(
+        this.#buildSystemQueryDto(request)
+      );
       if (!systems) throw new Error(`Queried systems do not exist`);
 
       return Result.ok<SystemDto[]>(
@@ -35,16 +39,19 @@ export class ReadSystems
     }
   }
 
-  #buildSystemQueryDto = (
-    request: ReadSystemsRequestDto
-  ): SystemQueryDto => {
+  #buildSystemQueryDto = (request: ReadSystemsRequestDto): SystemQueryDto => {
+    const queryDto: SystemQueryDto = {};
 
-    const queryDto : SystemQueryDto = {};
+    if (request.name) queryDto.name = request.name;
+    if (
+      request.warning &&
+      (request.warning.createdOnStart || request.warning.createdOnEnd)
+    )
+      queryDto.warning = request.warning;
+    if (request.modifiedOnStart)
+      queryDto.modifiedOnStart = request.modifiedOnStart;
+    if (request.modifiedOnEnd) queryDto.modifiedOnEnd = request.modifiedOnEnd;
 
-    if(request.name) queryDto.name = request.name;
-    if(request.warning && request.warning.createdOn) queryDto.warning = request.warning;
-    if(request.modifiedOn) queryDto.modifiedOn = request.modifiedOn;
-    
     return queryDto;
   };
 }

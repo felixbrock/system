@@ -51,7 +51,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
         this.findByCallback(systemEntity, systemQueryDto)
     );
 
-    if (!systems || !!systems.length) return [];
+    if (!systems || !systems.length) return [];
     return systems.map((system: SystemPersistence) =>
       this.#toEntity(this.#buildProperties(system))
     );
@@ -65,8 +65,11 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const nameMatch = systemQueryDto.name
       ? systemEntity.name === systemQueryDto.name
       : true;
-    const modifiedOnMatch = systemQueryDto.modifiedOn
-      ? systemEntity.modifiedOn === systemQueryDto.modifiedOn
+      const modifiedOnStartMatch = systemQueryDto.modifiedOnStart
+      ? systemEntity.modifiedOn >= systemQueryDto.modifiedOnStart
+      : true;
+      const modifiedOnEndMatch = systemQueryDto.modifiedOnEnd
+      ? systemEntity.modifiedOn <= systemQueryDto.modifiedOnEnd
       : true;
 
     let warningMatch: boolean;
@@ -74,14 +77,21 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       const queryTarget: WarningQueryDto = systemQueryDto.warning;
       const result: WarningPersistence | undefined = systemEntity.warnings.find(
         (warning: WarningPersistence) =>
-          queryTarget.createdOn
-            ? warning.createdOn === queryTarget.createdOn
-            : true
+{
+  const createdOnStartMatch = queryTarget.createdOnStart
+  ? warning.createdOn >= queryTarget.createdOnStart
+  : true;
+  const createdOnEndMatch = queryTarget.createdOnEnd
+  ? warning.createdOn <= queryTarget.createdOnEnd
+  : true;
+
+  return createdOnStartMatch && createdOnEndMatch;
+}
       );
       warningMatch = !!result;
     } else warningMatch = true;
 
-    return nameMatch && modifiedOnMatch && warningMatch;
+    return nameMatch && modifiedOnStartMatch && modifiedOnEndMatch  && warningMatch;
   }
 
   all = async (): Promise<System[]> => {
@@ -194,7 +204,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       const warningResult = Warning.create({ createdOn: warning.createdOn });
       if (warningResult.value) return warningResult.value;
       throw new Error(
-        warningResult.error || `Creation of system warning ${warning} failed`
+        warningResult.error || `Creation of system warning failed`
       );
     }),
   });
