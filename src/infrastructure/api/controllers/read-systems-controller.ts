@@ -41,17 +41,7 @@ export default class ReadSystemsController extends BaseController {
         'Request query parameter are supposed to be in string format'
       );
 
-    const startTime = '00:00:00';
-    const endTime = '23:59:59';
-
-    if (
-      typeof timezoneOffset === 'string' &&
-      timezoneOffset.indexOf('-') === -1 &&
-      timezoneOffset.indexOf('+') === -1
-    )
-      throw new Error(
-        `TimezoneOffset is not in correct format. '-' or '+' missing. Make sure to use URL encoding ('-'; '%2B' for '+' character)`
-      );
+   
 
     try {
       return Result.ok<ReadSystemsRequestDto>({
@@ -59,26 +49,20 @@ export default class ReadSystemsController extends BaseController {
         warning: {
           createdOnStart:
             typeof alertCreatedOnStart === 'string'
-              ? Date.parse(
-                  `${alertCreatedOnStart} ${startTime} ${timezoneOffset || ''}`
-                )
+              ? this.#buildDate(alertCreatedOnStart)
               : undefined,
           createdOnEnd:
             typeof alertCreatedOnEnd === 'string'
-              ? Date.parse(
-                  `${alertCreatedOnEnd} ${endTime} ${timezoneOffset || ''}`
-                )
+              ? this.#buildDate(alertCreatedOnEnd)
               : undefined,
         },
         modifiedOnStart:
           typeof modifiedOnStart === 'string'
-            ? Date.parse(
-                `${modifiedOnStart} ${startTime} ${timezoneOffset || ''}`
-              )
+            ? this.#buildDate(modifiedOnStart)
             : undefined,
         modifiedOnEnd:
           typeof modifiedOnEnd === 'string'
-            ? Date.parse(`${modifiedOnEnd} ${endTime} ${timezoneOffset || ''}`)
+            ? this.#buildDate(modifiedOnEnd)
             : undefined,
       });
     } catch (error) {
@@ -91,6 +75,26 @@ export default class ReadSystemsController extends BaseController {
       (parameter) => !!parameter === (typeof parameter === 'string')
     );
     return !validationResults.includes(false);
+  };
+
+  #buildDate = (timestamp: string): number => {
+    const date = timestamp.match(/[^T]*/s);
+    const time = timestamp.match(/(?<=T)[^Z]*/s);
+
+    if ((!date || !date[0] || date[0].length !== 8) || (!time || !time[0] || time[0].length !== 6))
+      throw new Error(
+        `${timestamp} not in format YYYYMMDD"T"HHMMSS"Z"`
+      );
+
+    const year = date[0].slice(0, 4);
+    const month = date[0].slice(4, 6);
+    const day = date[0].slice(6, 8);
+
+    const hour = time[0].slice(0, 2);
+    const minute = time[0].slice(2, 4);
+    const second = time[0].slice(4, 6);
+
+    return Date.parse(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
   };
 
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
