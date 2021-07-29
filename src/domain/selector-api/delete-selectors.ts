@@ -1,3 +1,4 @@
+import { URLSearchParams } from 'url';
 import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
 
@@ -6,7 +7,7 @@ export interface DeleteSelectorsRequestDto {
 }
 
 export interface ISelectorApiRepository {
-  deleteSelectors(systemId: string): Promise<Result<null>>;
+  deleteSelectors(params: URLSearchParams): Promise<Result<null>>;
 }
 
 export type DeleteSelectorsResponseDto = Result<null>;
@@ -25,7 +26,7 @@ export class DeleteSelectors
   ): Promise<DeleteSelectorsResponseDto> {
     try {
       const selectorResult: Result<null> = await this.#selectorApiRepository.deleteSelectors(
-        request.systemId
+        new URLSearchParams({systemId: request.systemId})
       );
       if (!selectorResult)
         throw new Error(`No selectors for system ${request.systemId} exist`);
