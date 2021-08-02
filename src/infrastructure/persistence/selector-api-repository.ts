@@ -9,7 +9,7 @@ export default class SelectorApiRepositoryImpl implements ISelectorApiRepository
   public deleteSelectors = async (params: URLSearchParams): Promise<Result<null>> => {
     try {
       const response = await axios.delete(`${apiRoot}/selectors`, {params});
-      const jsonResponse = await response.data;
+      const jsonResponse = response.data;
       if (response.status === 200) return Result.ok<null>();
       throw new Error(jsonResponse);
     } catch (error) {

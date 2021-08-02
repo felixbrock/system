@@ -20,8 +20,9 @@ export default class ReadSystemsController extends BaseController {
     const {
       name,
       warningCreatedOn,
-      alertCreatedOnStart,
-      alertCreatedOnEnd,
+      warningCreatedOnStart,
+      warningCreatedOnEnd,
+      warningSelectorId,
       modifiedOnStart,
       modifiedOnEnd,
       timezoneOffset,
@@ -30,8 +31,9 @@ export default class ReadSystemsController extends BaseController {
     const requestValid = this.#queryParametersValid([
       name,
       warningCreatedOn,
-      alertCreatedOnStart,
-      alertCreatedOnEnd,
+      warningCreatedOnStart,
+      warningCreatedOnEnd,
+      warningSelectorId,
       modifiedOnStart,
       modifiedOnEnd,
       timezoneOffset,
@@ -48,12 +50,16 @@ export default class ReadSystemsController extends BaseController {
         name: typeof name === 'string' ? name : undefined,
         warning: {
           createdOnStart:
-            typeof alertCreatedOnStart === 'string'
-              ? this.#buildDate(alertCreatedOnStart)
+            typeof warningCreatedOnStart === 'string'
+              ? this.#buildDate(warningCreatedOnStart)
               : undefined,
           createdOnEnd:
-            typeof alertCreatedOnEnd === 'string'
-              ? this.#buildDate(alertCreatedOnEnd)
+            typeof warningCreatedOnEnd === 'string'
+              ? this.#buildDate(warningCreatedOnEnd)
+              : undefined,
+          selectorId:
+          typeof warningSelectorId === 'string'
+              ? warningSelectorId
               : undefined,
         },
         modifiedOnStart:

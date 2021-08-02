@@ -52,7 +52,7 @@ export class UpdateSystem
     systemToModify.name = request.name || system.name;
 
     if (request.warning) {
-      const warningResult = Warning.create({});
+      const warningResult = Warning.create({selectorId: request.warning.selectorId});
       // TODO No uniform usage of Result.value Result.error and result.success. Fix.
       if (warningResult.error) throw new Error(warningResult.error);
       if (!warningResult.value)

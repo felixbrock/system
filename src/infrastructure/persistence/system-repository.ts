@@ -11,6 +11,7 @@ import Result from '../../domain/value-types/transient-types/result';
 
 interface WarningPersistence {
   createdOn: number;
+  selectorId: string;
 }
 
 interface SystemPersistence {
@@ -84,8 +85,11 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   const createdOnEndMatch = queryTarget.createdOnEnd
   ? warning.createdOn <= queryTarget.createdOnEnd
   : true;
+  const selectorIdMatch = queryTarget.selectorId
+  ? warning.selectorId <= queryTarget.selectorId
+  : true;
 
-  return createdOnStartMatch && createdOnEndMatch;
+  return createdOnStartMatch && createdOnEndMatch && selectorIdMatch;
 }
       );
       warningMatch = !!result;
@@ -201,7 +205,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     name: system.name,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map((warning) => {
-      const warningResult = Warning.create({ createdOn: warning.createdOn });
+      const warningResult = Warning.create({ createdOn: warning.createdOn, selectorId: warning.selectorId });
       if (warningResult.value) return warningResult.value;
       throw new Error(
         warningResult.error || `Creation of system warning failed`
@@ -216,6 +220,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     warnings: system.warnings.map(
       (warning): WarningPersistence => ({
         createdOn: warning.createdOn,
+        selectorId: warning.selectorId
       })
     ),
   });

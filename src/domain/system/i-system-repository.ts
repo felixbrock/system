@@ -11,6 +11,7 @@ export interface SystemQueryDto {
 export interface WarningQueryDto {
   createdOnStart?: number;
   createdOnEnd?: number;
+  selectorId?: string;
 }
 
 export interface ISystemRepository {

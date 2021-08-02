@@ -8,6 +8,7 @@ import { ISystemRepository } from '../system/i-system-repository';
 
 export interface CreateWarningRequestDto {
   systemId: string;
+  selectorId: string;
 }
 
 export type CreateWarningResponseDto = Result<WarningDto | null>;
@@ -30,7 +31,7 @@ export class CreateWarning
   public async execute(
     request: CreateWarningRequestDto
   ): Promise<CreateWarningResponseDto> {
-    const warning: Result<Warning | null> = this.#createWarning();
+    const warning: Result<Warning | null> = Warning.create({selectorId: request.selectorId});
     if (!warning.value) return warning;
 
     try {
@@ -64,6 +65,4 @@ export class CreateWarning
 
     return Result.ok<null>(null);
   }
-
-  #createWarning = (): Result<Warning | null> => Warning.create({});
 }

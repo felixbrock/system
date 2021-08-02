@@ -6,7 +6,7 @@ import { SystemDto, buildSystemDto } from './system-dto';
 
 export interface ReadSystemsRequestDto {
   name?: string;
-  warning?: { createdOnStart?: number; createdOnEnd?: number };
+  warning?: { createdOnStart?: number; createdOnEnd?: number; selectorId?: string;};
   modifiedOnStart?: number;
   modifiedOnEnd?: number;
 }
@@ -45,7 +45,7 @@ export class ReadSystems
     if (request.name) queryDto.name = request.name;
     if (
       request.warning &&
-      (request.warning.createdOnStart || request.warning.createdOnEnd)
+      (request.warning.createdOnStart || request.warning.createdOnEnd || request.warning.selectorId)
     )
       queryDto.warning = request.warning;
     if (request.modifiedOnStart)
