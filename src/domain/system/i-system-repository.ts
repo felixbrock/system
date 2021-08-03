@@ -17,7 +17,7 @@ export interface WarningQueryDto {
 export interface ISystemRepository {
   findOne(id: string): Promise<System | null>;
   findBy(
-    subscriptionQueryDto: SystemQueryDto
+    systemQueryDto: SystemQueryDto
   ): Promise<System[]>;
   all(): Promise<System[]>;
   update(system: System): Promise<Result<null>>;
