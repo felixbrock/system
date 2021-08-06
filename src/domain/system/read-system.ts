@@ -1,6 +1,6 @@
 import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import { SystemDto } from './system-dto';
+import { buildSystemDto, SystemDto } from './system-dto';
 import { System } from '../entities/system';
 import { ISystemRepository } from './i-system-repository';
 
@@ -29,7 +29,7 @@ export class ReadSystem
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      return Result.ok<SystemDto>(system);
+      return Result.ok<SystemDto>(buildSystemDto(system));
     } catch (error) {
       return Result.fail<SystemDto>(error.message);
     }
