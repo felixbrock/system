@@ -1,8 +1,7 @@
 // TODO Violation of Dependency Rule
-import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import Id from '../value-types/id';
 import { System, SystemProperties } from '../entities/system';
 import { SystemDto, buildSystemDto } from './system-dto';
 import { ISystemRepository } from './i-system-repository';
@@ -37,7 +36,7 @@ export class CreateSystem
           `System ${readSystemResult[0].name} is already registered under ${readSystemResult[0].id}`
         );
 
-      await this.#systemRepository.save(system.value);
+      await this.#systemRepository.insertOne(system.value);
 
       return Result.ok<SystemDto>(buildSystemDto(system.value));
     } catch (error) {
@@ -47,7 +46,7 @@ export class CreateSystem
 
   #createSystem = (request: CreateSystemRequestDto): Result<System | null> => {
     const systemProperties: SystemProperties = {
-      id: Id.next(uuidv4).id,
+      id: new ObjectId().toHexString(),
       name: request.name,
     };
 

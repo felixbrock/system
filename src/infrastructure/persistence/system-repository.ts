@@ -1,13 +1,20 @@
-import fs from 'fs';
-import path from 'path';
+import {
+  DeleteResult,
+  Document,
+  FindCursor,
+  InsertOneResult,
+  ObjectId,
+  UpdateResult,
+} from 'mongodb';
 import { System, SystemProperties } from '../../domain/entities/system';
 import {
   ISystemRepository,
   SystemQueryDto,
-  WarningQueryDto,
+  SystemUpdateDto,
 } from '../../domain/system/i-system-repository';
-import {Warning} from '../../domain/value-types/warning';
+import { Warning } from '../../domain/value-types/warning';
 import Result from '../../domain/value-types/transient-types/result';
+import { close, connect, createClient } from './db/mongo-db';
 
 interface WarningPersistence {
   createdOn: number;
@@ -15,181 +22,168 @@ interface WarningPersistence {
 }
 
 interface SystemPersistence {
-  id: string;
+  _id: string;
   name: string;
   warnings: WarningPersistence[];
   modifiedOn: number;
   // eslint-disable-next-line semi
 }
 
+const collectionName = 'systems';
+
 export default class SystemRepositoryImpl implements ISystemRepository {
   public findOne = async (id: string): Promise<System | null> => {
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
+    const client = createClient();
+    const db = await connect(client);
+    const result: any = await db
+      .collection(collectionName)
+      .findOne({ _id: new ObjectId(id) });
 
-    const result: SystemPersistence = db.systems.find(
-      (systemEntity: { id: string }) => systemEntity.id === id
-    );
+    close(client);
 
     if (!result) return null;
+
     return this.#toEntity(this.#buildProperties(result));
   };
 
-  public async findBy(systemQueryDto: SystemQueryDto): Promise<System[]> {
+  public findBy = async (systemQueryDto: SystemQueryDto): Promise<System[]> => {
     if (!Object.keys(systemQueryDto).length) return this.all();
 
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
+    const client = createClient();
+    const db = await connect(client);
+    const result: FindCursor = await db
+      .collection(collectionName)
+      .find(this.#buildFilter(systemQueryDto));
+    const results = await result.toArray();
 
-    const systems: SystemPersistence[] = db.systems.filter(
-      (systemEntity: SystemPersistence) =>
-        this.findByCallback(systemEntity, systemQueryDto)
-    );
+    close(client);
 
-    if (!systems || !systems.length) return [];
-    return systems.map((system: SystemPersistence) =>
-      this.#toEntity(this.#buildProperties(system))
-    );
-  }
+    if (!results || !results.length) return [];
 
-  // eslint-disable-next-line class-methods-use-this
-  private findByCallback(
-    systemEntity: SystemPersistence,
-    systemQueryDto: SystemQueryDto
-  ): boolean {
-    const nameMatch = systemQueryDto.name
-      ? systemEntity.name === systemQueryDto.name
-      : true;
-      const modifiedOnStartMatch = systemQueryDto.modifiedOnStart
-      ? systemEntity.modifiedOn >= systemQueryDto.modifiedOnStart
-      : true;
-      const modifiedOnEndMatch = systemQueryDto.modifiedOnEnd
-      ? systemEntity.modifiedOn <= systemQueryDto.modifiedOnEnd
-      : true;
-
-    let warningMatch: boolean;
-    if (systemQueryDto.warning === true) {
-      const queryTarget: WarningQueryDto = systemQueryDto.warning;
-      const result: WarningPersistence | undefined = systemEntity.warnings.find(
-        (warning: WarningPersistence) =>
-{
-  const createdOnStartMatch = queryTarget.createdOnStart
-  ? warning.createdOn >= queryTarget.createdOnStart
-  : true;
-  const createdOnEndMatch = queryTarget.createdOnEnd
-  ? warning.createdOn <= queryTarget.createdOnEnd
-  : true;
-  const selectorIdMatch = queryTarget.selectorId
-  ? warning.selectorId <= queryTarget.selectorId
-  : true;
-
-  return createdOnStartMatch && createdOnEndMatch && selectorIdMatch;
-}
-      );
-      warningMatch = !!result;
-    } else warningMatch = true;
-
-    return nameMatch && modifiedOnStartMatch && modifiedOnEndMatch  && warningMatch;
-  }
-
-  all = async (): Promise<System[]> => {
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
-
-    const { systems } = db;
-
-    if (!systems || !systems.length) return [];
-    return systems.map((system: SystemPersistence) =>
-      this.#toEntity(this.#buildProperties(system))
+    return results.map((element: any) =>
+      this.#toEntity(this.#buildProperties(element))
     );
   };
 
-  public async save(system: System): Promise<Result<null>> {
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
-    try {
-      db.systems.push(this.#toPersistence(system));
+  #buildFilter = (systemQueryDto: SystemQueryDto): any => {
+    const filter: { [key: string]: any } = {};
 
-      fs.writeFileSync(
-        path.resolve(__dirname, '../../../db.json'),
-        JSON.stringify(db),
-        'utf-8'
-      );
+    if (systemQueryDto.name) filter.name = systemQueryDto.name;
+
+    const modifiedOnFilter: { [key: string]: number } = {};
+    if (systemQueryDto.modifiedOnStart)
+      modifiedOnFilter.$gte = systemQueryDto.modifiedOnStart;
+    if (systemQueryDto.modifiedOnEnd)
+      modifiedOnFilter.$lte = systemQueryDto.modifiedOnEnd;
+    if (Object.keys(modifiedOnFilter).length)
+      filter.modifiedOn = modifiedOnFilter;
+
+    if (!systemQueryDto.warning || !Object.keys(systemQueryDto.warning).length)
+      return filter;
+
+    const warningCreatedOnFilter: { [key: string]: number } = {};
+    if (systemQueryDto.warning.createdOnStart)
+      warningCreatedOnFilter.$gte = systemQueryDto.warning.createdOnStart;
+    if (systemQueryDto.warning.createdOnEnd)
+      warningCreatedOnFilter.$lte = systemQueryDto.warning.createdOnEnd;
+    if (Object.keys(warningCreatedOnFilter).length)
+      filter['warnings.createdOn'] = warningCreatedOnFilter;
+
+    if (systemQueryDto.warning.selectorId)
+      filter['warnings.selectorId'] = systemQueryDto.warning.selectorId;
+
+    return filter;
+  };
+
+  public all = async (): Promise<System[]> => {
+    const client = createClient();
+    const db = await connect(client);
+    const result: FindCursor = await db.collection(collectionName).find();
+    const results = await result.toArray();
+
+    close(client);
+
+    if (!results || !results.length) return [];
+
+    return results.map((element: any) =>
+      this.#toEntity(this.#buildProperties(element))
+    );
+  };
+
+  public insertOne = async (system: System): Promise<Result<null>> => {
+    try {
+      const client = createClient();
+      const db = await connect(client);
+      const result: InsertOneResult<Document> = await db
+        .collection(collectionName)
+        .insertOne(this.#toPersistence(system));
+
+      if (!result.acknowledged)
+        throw new Error('System creation failed. Insert not acknowledged');
+
+      close(client);
 
       return Result.ok<null>();
     } catch (error) {
       return Result.fail<null>(error.message);
     }
-  }
+  };
 
-  public async update(system: System): Promise<Result<null>> {
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
-
+  public updateOne = async (
+    id: string,
+    updateDto: SystemUpdateDto
+  ): Promise<Result<null>> => {
     try {
-      for (let i = 0; i < db.systems.length; i += 1) {
-        if (db.systems[i].id === system.id) {
-          db.systems[i] = this.#toPersistence(system);
-          break;
-        }
-      }
+      const client = createClient();
+      const db = await connect(client);
+      const result: Document | UpdateResult = await db
+        .collection(collectionName)
+        .updateOne(
+          { _id: new ObjectId(id) },
+          this.#buildUpdateFilter(updateDto)
+        );
 
-      fs.writeFileSync(
-        path.resolve(__dirname, '../../../db.json'),
-        JSON.stringify(db),
-        'utf-8'
-      );
+      if (!result.acknowledged)
+        throw new Error('System update failed. Update not acknowledged');
+
+      close(client);
 
       return Result.ok<null>();
     } catch (error) {
       return Result.fail<null>(error.message);
     }
-  }
+  };
 
-  // eslint-disable-next-line class-methods-use-this
-  public async delete(id: string): Promise<Result<null>> {
-    const data: string = fs.readFileSync(
-      path.resolve(__dirname, '../../../db.json'),
-      'utf-8'
-    );
-    const db = JSON.parse(data);
+  #buildUpdateFilter = (systemUpdateDto: SystemUpdateDto): any => {
+    const filter: { [key: string]: any } = {};
 
+    if (systemUpdateDto.name) filter.name = systemUpdateDto.name;
+    if (systemUpdateDto.modifiedOn)
+      filter.modifiedOn = systemUpdateDto.modifiedOn;
+    if (systemUpdateDto.warning)
+      filter.$push = this.#warningToPersistence(systemUpdateDto.warning);
+
+    return { $set: filter };
+  };
+
+  public deleteOne = async (id: string): Promise<Result<null>> => {
     try {
-      const systems: SystemPersistence[] = db.systems.filter(
-        (systemEntity: { id: string }) => systemEntity.id !== id
-      );
+      const client = createClient();
+      const db = await connect(client);
+      const result: DeleteResult = await db
+        .collection(collectionName)
+        .deleteOne({ _id: new ObjectId(id) });
 
-      if (systems.length === db.systems.length)
-        throw new Error(`System with id ${id} does not exist`);
+      if (!result.acknowledged)
+        throw new Error('System delete failed. Delete not acknowledged');
 
-      db.systems = systems;
-
-      fs.writeFileSync(
-        path.resolve(__dirname, '../../../db.json'),
-        JSON.stringify(db),
-        'utf-8'
-      );
+      close(client);
 
       return Result.ok<null>();
     } catch (error) {
       return Result.fail<null>(error.message);
     }
-  }
+  };
 
   #toEntity = (systemProperties: SystemProperties): System => {
     const createSystemResult: Result<System> = System.create(systemProperties);
@@ -201,11 +195,15 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   };
 
   #buildProperties = (system: SystemPersistence): SystemProperties => ({
-    id: system.id,
+    // eslint-disable-next-line no-underscore-dangle
+    id: system._id,
     name: system.name,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map((warning) => {
-      const warningResult = Warning.create({ createdOn: warning.createdOn, selectorId: warning.selectorId });
+      const warningResult = Warning.create({
+        createdOn: warning.createdOn,
+        selectorId: warning.selectorId,
+      });
       if (warningResult.value) return warningResult.value;
       throw new Error(
         warningResult.error || `Creation of system warning failed`
@@ -213,15 +211,17 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     }),
   });
 
-  #toPersistence = (system: System): SystemPersistence => ({
-    id: system.id,
+  #toPersistence = (system: System): Document => ({
+    _id: ObjectId.createFromHexString(system.id),
     name: system.name,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map(
-      (warning): WarningPersistence => ({
-        createdOn: warning.createdOn,
-        selectorId: warning.selectorId
-      })
+      (warning): WarningPersistence => this.#warningToPersistence(warning)
     ),
+  });
+
+  #warningToPersistence = (warning: Warning): WarningPersistence => ({
+    createdOn: warning.createdOn,
+    selectorId: warning.selectorId,
   });
 }

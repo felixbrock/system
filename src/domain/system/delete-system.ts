@@ -41,7 +41,7 @@ export class DeleteSystem
       if (deleteSelectorsResult.error) throw new Error(deleteSelectorsResult.error);
 
       const deleteSystemResult: Result<null> =
-        await this.#systemRepository.delete(request.id);
+        await this.#systemRepository.deleteOne(request.id);
 
       if(deleteSystemResult.error) throw new Error(deleteSystemResult.error);
 

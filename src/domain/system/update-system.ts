@@ -5,7 +5,7 @@ import { SystemDto, buildSystemDto } from './system-dto';
 import Result from '../value-types/transient-types/result';
 import {Warning} from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
-import { ISystemRepository } from './i-system-repository';
+import { ISystemRepository, SystemUpdateDto } from './i-system-repository';
 
 // TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {
@@ -36,33 +36,36 @@ export class UpdateSystem
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      const modifiedSystem = this.#modifySystem(system, request);
+      const updateDto = await this.#buildUpdateDto(request);
 
-      await this.#systemRepository.update(modifiedSystem);
+      await this.#systemRepository.updateOne(request.id, updateDto);
 
-      return Result.ok<SystemDto>(buildSystemDto(modifiedSystem));
+      // TODO - Doesn't return the right object. Fix.
+      return Result.ok<SystemDto>(buildSystemDto(system));
     } catch (error) {
       return Result.fail<SystemDto>(error.message);
     }
   }
 
-  #modifySystem = (system: System, request: UpdateSystemRequestDto): System => {
-    const systemToModify = system;
+  #buildUpdateDto = async (
+    request: UpdateSystemRequestDto
+  ): Promise<SystemUpdateDto> => {
+    const updateDto: SystemUpdateDto = {};
 
-    systemToModify.name = request.name || system.name;
+    if (request.name) updateDto.name = request.name;
 
     if (request.warning) {
-      const warningResult = Warning.create({selectorId: request.warning.selectorId});
+      const createResult = Warning.create({selectorId: request.warning.selectorId});
       // TODO No uniform usage of Result.value Result.error and result.success. Fix.
-      if (warningResult.error) throw new Error(warningResult.error);
-      if (!warningResult.value)
-        throw new Error(`Creation of system warning ${request.warning} failed`);
+      if (createResult.error) throw new Error(createResult.error);
+      if (!createResult.value)
+        throw new Error(`Creation of selector warning ${request.warning} failed`);
 
-      systemToModify.addWarning(warningResult.value);
+      updateDto.warning = createResult.value;
     }
 
-    systemToModify.modifiedOn = Date.now();
+    updateDto.modifiedOn = Date.now();
 
-    return systemToModify;
+    return updateDto;
   };
 }
