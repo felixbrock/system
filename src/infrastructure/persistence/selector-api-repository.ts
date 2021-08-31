@@ -13,7 +13,7 @@ export default class SelectorApiRepositoryImpl implements ISelectorApiRepository
       if (response.status === 200) return Result.ok<null>();
       throw new Error(jsonResponse);
     } catch (error) {
-      return Result.fail<null>(error.message);;
+      return Result.fail<null>(typeof error === 'string' ? error : error.message);;
     }
   };
 }

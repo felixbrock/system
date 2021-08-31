@@ -52,7 +52,7 @@ export class CreateWarning
 
       return Result.ok<WarningDto>(warningDto);
     } catch (error) {
-      return Result.fail<WarningDto>(error.message);
+      return Result.fail<WarningDto>(typeof error === 'string' ? error : error.message);
     }
   }
 

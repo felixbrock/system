@@ -40,7 +40,7 @@ export class CreateSystem
 
       return Result.ok<SystemDto>(buildSystemDto(system.value));
     } catch (error) {
-      return Result.fail<SystemDto>(error.message);
+      return Result.fail<SystemDto>(typeof error === 'string' ? error : error.message);
     }
   }
 
