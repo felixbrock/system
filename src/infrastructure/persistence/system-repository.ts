@@ -156,14 +156,18 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
   #buildUpdateFilter = (systemUpdateDto: SystemUpdateDto): any => {
     const filter: { [key: string]: any } = {};
+    const setFilter: { [key: string]: any } = {};
+    const pushFilter: { [key: string]: any } = {};
 
     if (systemUpdateDto.name) filter.name = systemUpdateDto.name;
     if (systemUpdateDto.modifiedOn)
       filter.modifiedOn = systemUpdateDto.modifiedOn;
-    if (systemUpdateDto.warning)
-      filter.$push = this.#warningToPersistence(systemUpdateDto.warning);
 
-    return { $set: filter };
+    if (systemUpdateDto.warning)
+      pushFilter.warnings = this.#warningToPersistence(systemUpdateDto.warning);
+
+    if (Object.keys(setFilter).length) filter.$set = setFilter;
+    if (Object.keys(pushFilter).length) filter.$push = pushFilter;
   };
 
   public deleteOne = async (id: string): Promise<Result<null>> => {
