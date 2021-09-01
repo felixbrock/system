@@ -41,7 +41,7 @@ export default class CreateWarningController extends BaseController {
       if (!buildDtoResult.value)
         return CreateWarningController.badRequest(
           res,
-          'Invalid request query paramerters'
+          'Invalid request paramerters'
         );
 
       const useCaseResult: CreateWarningResponseDto =
