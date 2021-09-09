@@ -42,7 +42,7 @@ export default class SystemDomain {
     return this.#createWarning;
   }
 
-  constructor(
+  public constructor(
     readSystem: ReadSystem,
     readSystems: ReadSystems,
     createSystem: CreateSystem,

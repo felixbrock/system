@@ -26,8 +26,7 @@ interface SystemPersistence {
   name: string;
   warnings: WarningPersistence[];
   modifiedOn: number;
-  // eslint-disable-next-line semi
-}
+};
 
 const collectionName = 'systems';
 

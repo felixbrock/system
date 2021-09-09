@@ -1,6 +1,6 @@
-import { System } from "../entities/system";
-import Result from "../value-types/transient-types/result";
-import { Warning } from "../value-types/warning";
+import { System } from '../entities/system';
+import Result from '../value-types/transient-types/result';
+import { Warning } from '../value-types/warning';
 
 export interface SystemQueryDto {
   name?: string;
@@ -15,21 +15,17 @@ interface WarningQueryDto {
   selectorId?: string;
 }
 
-export interface SystemUpdateDto{
+export interface SystemUpdateDto {
   name?: string;
   warning?: Warning;
   modifiedOn?: number;
 }
 
-
 export interface ISystemRepository {
   findOne(id: string): Promise<System | null>;
-  findBy(
-    systemQueryDto: SystemQueryDto
-  ): Promise<System[]>;
+  findBy(systemQueryDto: SystemQueryDto): Promise<System[]>;
   all(): Promise<System[]>;
   updateOne(id: string, updateDto: SystemUpdateDto): Promise<Result<null>>;
   insertOne(system: System): Promise<Result<null>>;
   deleteOne(systemId: string): Promise<Result<null>>;
-  // eslint-disable-next-line semi
 }
