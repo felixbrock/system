@@ -34,7 +34,7 @@ export class ReadSystems
       return Result.ok<SystemDto[]>(
         systems.map((system) => buildSystemDto(system))
       );
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<null>(typeof error === 'string' ? error : error.message);
     }
   }

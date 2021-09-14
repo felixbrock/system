@@ -71,7 +71,7 @@ export default class ReadSystemsController extends BaseController {
             ? this.#buildDate(modifiedOnEnd)
             : undefined,
       });
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<ReadSystemsRequestDto>(typeof error === 'string' ? error : error.message);
     }
   };
@@ -124,7 +124,7 @@ export default class ReadSystemsController extends BaseController {
       }
 
       return ReadSystemsController.ok(res, useCaseResult.value, CodeHttp.OK);
-    } catch (error) {
+    } catch (error: any) {
       return ReadSystemsController.fail(res, error);
     }
   }
