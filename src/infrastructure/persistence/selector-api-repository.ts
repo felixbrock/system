@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { URLSearchParams } from 'url';
-import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
+import { nodeEnv, port, serviceDiscoveryNamespace } from '../../config';
 import { ISelectorApiRepository } from '../../domain/selector-api/delete-selectors';
 import Result from '../../domain/value-types/transient-types/result';
 import discoverIp from '../shared/service-discovery';
@@ -17,7 +17,7 @@ export default class SelectorApiRepositoryImpl implements ISelectorApiRepository
         'selector-service'
       );
 
-      return `http://${ip}/${path}`;
+      return `http://${ip}:${port}/${path}`;
     } catch (error: any) {
       return Promise.reject(typeof error === 'string' ? error : error.message);
     }
