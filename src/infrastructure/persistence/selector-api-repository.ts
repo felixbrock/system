@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { URLSearchParams } from 'url';
-import { nodeEnv, port, serviceDiscoveryNamespace } from '../../config';
+import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
 import { ISelectorApiRepository } from '../../domain/selector-api/delete-selectors';
 import Result from '../../domain/value-types/transient-types/result';
-import discoverIp from '../shared/service-discovery';
+import { DiscoveredService, discoverService } from '../shared/service-discovery';
+
 
 export default class SelectorApiRepositoryImpl implements ISelectorApiRepository {
   #getRoot = async (): Promise<string> => {
@@ -12,12 +13,12 @@ export default class SelectorApiRepositoryImpl implements ISelectorApiRepository
     if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
 
     try {
-      const ip = await discoverIp(
+      const discoveredService : DiscoveredService = await discoverService(
         serviceDiscoveryNamespace,
         'selector-service'
       );
 
-      return `http://${ip}:${port}/${path}`;
+      return `http://${discoveredService.ip}:${discoveredService.port}/${path}`;
     } catch (error: any) {
       return Promise.reject(typeof error === 'string' ? error : error.message);
     }
