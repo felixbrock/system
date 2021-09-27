@@ -1,32 +1,19 @@
 import axios from 'axios';
 import { URLSearchParams } from 'url';
-import { nodeEnv, serviceDiscoveryNamespace } from '../../config';
 import { ISelectorApiRepository } from '../../domain/selector-api/delete-selectors';
 import Result from '../../domain/value-types/transient-types/result';
-import { DiscoveredService, discoverService } from '../shared/service-discovery';
-
+import getRoot from '../shared/api-root-builder';
 
 export default class SelectorApiRepositoryImpl implements ISelectorApiRepository {
-  #getRoot = async (): Promise<string> => {
-    const path = 'api/v1';
+  #path = 'api/v1';
 
-    if (nodeEnv !== 'production') return `http://localhost:3000/${path}`;
+  #serviceName = 'selector';
 
-    try {
-      const discoveredService : DiscoveredService = await discoverService(
-        serviceDiscoveryNamespace,
-        'selector-service'
-      );
-
-      return `http://${discoveredService.ip}:${discoveredService.port}/${path}`;
-    } catch (error: any) {
-      return Promise.reject(typeof error === 'string' ? error : error.message);
-    }
-  };
-
+  #port = '3000';
+  
   public deleteSelectors = async (params: URLSearchParams): Promise<Result<null>> => {
     try {
-      const apiRoot = await this.#getRoot();
+      const apiRoot = await getRoot(this.#serviceName, this.#port, this.#path);
 
       const response = await axios.delete(`${apiRoot}/selectors`, {params});
       const jsonResponse = response.data;
