@@ -26,7 +26,7 @@ export default class CreateSystemController extends BaseController {
       }
 
       return CreateSystemController.ok(res, useCaseResult.value, CodeHttp.CREATED);
-    } catch (error) {
+    } catch (error: any) {
       return CreateSystemController.fail(res, error);
     }
   }

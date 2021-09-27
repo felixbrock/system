@@ -56,7 +56,7 @@ export default class CreateWarningController extends BaseController {
         useCaseResult.value,
         CodeHttp.CREATED
       );
-    } catch (error) {
+    } catch (error: any) {
       return CreateWarningController.fail(res, error);
     }
   }

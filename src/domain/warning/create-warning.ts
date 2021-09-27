@@ -51,7 +51,7 @@ export class CreateWarning
         throw new Error(`Couldn't update system ${request.systemId}`);
 
       return Result.ok<WarningDto>(warningDto);
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<WarningDto>(typeof error === 'string' ? error : error.message);
     }
   }
