@@ -23,7 +23,7 @@ export class CreateSystem
 
   public async execute(
     request: CreateSystemRequestDto
-  ): Promise<CreateSystemResponseDto> {
+  ): Promise<CreateSystemResponseDto> {   
     const system: Result<System | null> = this.#createSystem(request);
     if (!system.value) return system;
 
@@ -39,8 +39,10 @@ export class CreateSystem
       await this.#systemRepository.insertOne(system.value);
 
       return Result.ok<SystemDto>(buildSystemDto(system.value));
-    } catch (error) {
-      return Result.fail<SystemDto>(typeof error === 'string' ? error : error.message);
+    } catch (error: any) {
+      return Result.fail<SystemDto>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   }
 

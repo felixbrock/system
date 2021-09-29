@@ -20,7 +20,7 @@ export default class CreateWarningController extends BaseController {
     httpRequest: Request
   ): Result<CreateWarningRequestDto> => {
     const { systemId } = httpRequest.params;
-    const { selectorId } = httpRequest.body;
+    const { selectorId } = httpRequest.body.data;
     if (systemId)
       return Result.ok<CreateWarningRequestDto>({
         systemId,
