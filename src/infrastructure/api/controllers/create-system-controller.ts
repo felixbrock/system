@@ -12,7 +12,7 @@ export default class CreateSystemController extends BaseController {
   }
 
   #buildRequestDto = (httpRequest: Request): CreateSystemRequestDto => ({
-      name: httpRequest.body.data.name
+      name: httpRequest.body.name
     })
 
 
