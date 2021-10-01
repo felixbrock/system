@@ -19,6 +19,7 @@ export default class ReadSystemsController extends BaseController {
   #buildRequestDto = (httpRequest: Request): Result<ReadSystemsRequestDto> => {
     const {
       name,
+      organizationId,
       warningCreatedOn,
       warningCreatedOnStart,
       warningCreatedOnEnd,
@@ -30,6 +31,7 @@ export default class ReadSystemsController extends BaseController {
 
     const requestValid = this.#queryParametersValid([
       name,
+      organizationId,
       warningCreatedOn,
       warningCreatedOnStart,
       warningCreatedOnEnd,
@@ -48,6 +50,7 @@ export default class ReadSystemsController extends BaseController {
     try {
       return Result.ok<ReadSystemsRequestDto>({
         name: typeof name === 'string' ? name : undefined,
+        organizationId: typeof organizationId === 'string' ? organizationId : undefined,
         warning: {
           createdOnStart:
             typeof warningCreatedOnStart === 'string'

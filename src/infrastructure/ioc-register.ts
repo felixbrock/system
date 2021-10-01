@@ -12,6 +12,8 @@ import { DeleteSystem } from '../domain/system/delete-system';
 import { DeleteSelectors } from '../domain/selector-api/delete-selectors';
 import SelectorApiRepository from './persistence/selector-api-repository';
 import { ReadSystems } from '../domain/system/read-systems';
+import { GetOrganization } from '../domain/account-api/get-organization';
+import AccountApiRepository from './persistence/account-api-repository';
 
 const iocRegister = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -27,9 +29,11 @@ iocRegister.register({
   createWarning: asClass(CreateWarning),
 
   deleteSelectors: asClass(DeleteSelectors),
+  getOrganization: asClass(GetOrganization),
 
   systemRepository: asClass(SystemRepository),
-  selectorApiRepository: asClass(SelectorApiRepository)
+  selectorApiRepository: asClass(SelectorApiRepository),
+  accountApiRepository: asClass(AccountApiRepository)
 });
 
 const systemMain = iocRegister.resolve<SystemDomain>('systemDomain');

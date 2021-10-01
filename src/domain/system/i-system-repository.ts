@@ -4,6 +4,7 @@ import { Warning } from '../value-types/warning';
 
 export interface SystemQueryDto {
   name?: string;
+  organizationId?: string;
   warning?: WarningQueryDto;
   modifiedOnStart?: number;
   modifiedOnEnd?: number;
@@ -17,6 +18,7 @@ interface WarningQueryDto {
 
 export interface SystemUpdateDto {
   name?: string;
+  organizationId?: string;
   warning?: Warning;
   modifiedOn?: number;
 }

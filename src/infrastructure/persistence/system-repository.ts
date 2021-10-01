@@ -24,6 +24,7 @@ interface WarningPersistence {
 interface SystemPersistence {
   _id: string;
   name: string;
+  organizationId: string;
   warnings: WarningPersistence[];
   modifiedOn: number;
 };
@@ -68,6 +69,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const filter: { [key: string]: any } = {};
 
     if (systemQueryDto.name) filter.name = systemQueryDto.name;
+    if (systemQueryDto.organizationId) filter.organizationId = systemQueryDto.organizationId;
 
     const modifiedOnFilter: { [key: string]: number } = {};
     if (systemQueryDto.modifiedOnStart)
@@ -123,7 +125,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       close(client);
 
       return Result.ok<null>();
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<null>(typeof error === 'string' ? error : error.message);
     }
   };
@@ -148,7 +150,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       close(client);
 
       return Result.ok<null>();
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<null>(typeof error === 'string' ? error : error.message);
     }
   };
@@ -159,6 +161,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const pushFilter: { [key: string]: any } = {};
 
     if (systemUpdateDto.name) filter.name = systemUpdateDto.name;
+    if (systemUpdateDto.organizationId) filter.organizationId = systemUpdateDto.organizationId;
     if (systemUpdateDto.modifiedOn)
       filter.modifiedOn = systemUpdateDto.modifiedOn;
 
@@ -183,7 +186,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       close(client);
 
       return Result.ok<null>();
-    } catch (error) {
+    } catch (error: any) {
       return Result.fail<null>(typeof error === 'string' ? error : error.message);
     }
   };
@@ -201,6 +204,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     // eslint-disable-next-line no-underscore-dangle
     id: system._id,
     name: system.name,
+    organizationId: system.organizationId,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map((warning) => {
       const warningResult = Warning.create({
@@ -217,6 +221,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   #toPersistence = (system: System): Document => ({
     _id: ObjectId.createFromHexString(system.id),
     name: system.name,
+    organizationId: system.organizationId,
     modifiedOn: system.modifiedOn,
     warnings: system.warnings.map(
       (warning): WarningPersistence => this.#warningToPersistence(warning)

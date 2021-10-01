@@ -6,7 +6,12 @@ import { SystemDto, buildSystemDto } from './system-dto';
 
 export interface ReadSystemsRequestDto {
   name?: string;
-  warning?: { createdOnStart?: number; createdOnEnd?: number; selectorId?: string;};
+  organizationId?: string;
+  warning?: {
+    createdOnStart?: number;
+    createdOnEnd?: number;
+    selectorId?: string;
+  };
   modifiedOnStart?: number;
   modifiedOnEnd?: number;
 }
@@ -35,7 +40,9 @@ export class ReadSystems
         systems.map((system) => buildSystemDto(system))
       );
     } catch (error: any) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+      return Result.fail<null>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   }
 
@@ -43,9 +50,13 @@ export class ReadSystems
     const queryDto: SystemQueryDto = {};
 
     if (request.name) queryDto.name = request.name;
+    if (request.organizationId)
+      queryDto.organizationId = request.organizationId;
     if (
       request.warning &&
-      (request.warning.createdOnStart || request.warning.createdOnEnd || request.warning.selectorId)
+      (request.warning.createdOnStart ||
+        request.warning.createdOnEnd ||
+        request.warning.selectorId)
     )
       queryDto.warning = request.warning;
     if (request.modifiedOnStart)

@@ -4,6 +4,7 @@ import Result from '../value-types/transient-types/result';
 export interface SystemProperties {
   id: string;
   name: string;
+  organizationId: string;
   modifiedOn?: number;
   warnings?: Warning[];
 }
@@ -12,6 +13,8 @@ export class System {
   #id: string;
 
   #name: string;
+
+  #organizationId: string;
 
   #warnings: Warning[];
 
@@ -31,6 +34,16 @@ export class System {
     this.#name = name;
   }
 
+  public get organizationId(): string {
+    return this.#organizationId;
+  }
+
+  public set organizationId(organizationId: string) {
+    if (!organizationId) throw new Error('OrganizationId cannot be null');
+
+    this.#organizationId = organizationId;
+  }
+
   public get warnings(): Warning[] {
     return this.#warnings;
   }
@@ -46,6 +59,7 @@ export class System {
   private constructor(properties: SystemProperties) {
     this.#id = properties.id;
     this.#name = properties.name;
+    this.#organizationId = properties.organizationId;
     this.#warnings = properties.warnings || [];
     this.#modifiedOn = properties.modifiedOn || Date.now();
   }
@@ -53,6 +67,7 @@ export class System {
   public static create(properties: SystemProperties): Result<System> {
     if (!properties.id) return Result.fail('System must have id');
     if (!properties.name) return Result.fail('System must have name');
+    if(!properties.organizationId) return Result.fail ('System must have organizationId');
 
     const system = new System(properties);
     return Result.ok<System>(system);
