@@ -9,18 +9,18 @@ import DeleteSystemController from '../controllers/delete-system-controller';
 const systemRoutes = Router();
 const systemDomain: SystemDomain = app.systemMain;
 
-const readSystemController = new ReadSystemController(systemDomain.readSystem);
+const readSystemController = new ReadSystemController(systemDomain.readSystem, app.container.resolve('getAccounts'));
 
 const createSystemController = new CreateSystemController(
-  systemDomain.createSystem
+  systemDomain.createSystem, app.container.resolve('getAccounts')
 );
 
 const deleteSystemController = new DeleteSystemController(
-  systemDomain.deleteSystem
+  systemDomain.deleteSystem, app.container.resolve('getAccounts')
 );
 
 const createWarningController = new CreateWarningController(
-  systemDomain.createWarning
+  systemDomain.createWarning, app.container.resolve('getAccounts')
 );
 
 systemRoutes.post('/', (req, res) => createSystemController.execute(req, res));

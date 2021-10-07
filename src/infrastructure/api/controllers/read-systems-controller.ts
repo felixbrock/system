@@ -1,19 +1,28 @@
 // TODO: Violation of control flow. DI for express instead
 import { Request, Response } from 'express';
+import { GetAccounts } from '../../../domain/account-api/get-accounts';
 import {
   ReadSystems,
+  ReadSystemsAuthDto,
   ReadSystemsRequestDto,
   ReadSystemsResponseDto,
 } from '../../../domain/system/read-systems';
 import Result from '../../../domain/value-types/transient-types/result';
-import { BaseController, CodeHttp } from '../../shared/base-controller';
+import {
+  BaseController,
+  CodeHttp,
+  UserAccountInfo,
+} from '../../shared/base-controller';
 
 export default class ReadSystemsController extends BaseController {
   #readSystems: ReadSystems;
 
-  public constructor(readSystems: ReadSystems) {
+  #getAccounts: GetAccounts;
+
+  public constructor(readSystems: ReadSystems, getAccounts: GetAccounts) {
     super();
     this.#readSystems = readSystems;
+    this.#getAccounts = getAccounts;
   }
 
   #buildRequestDto = (httpRequest: Request): Result<ReadSystemsRequestDto> => {
@@ -45,12 +54,9 @@ export default class ReadSystemsController extends BaseController {
         'Request query parameter are supposed to be in string format'
       );
 
-   
-
     try {
       return Result.ok<ReadSystemsRequestDto>({
         name: typeof name === 'string' ? name : undefined,
-        organizationId: typeof organizationId === 'string' ? organizationId : undefined,
         warning: {
           createdOnStart:
             typeof warningCreatedOnStart === 'string'
@@ -61,7 +67,7 @@ export default class ReadSystemsController extends BaseController {
               ? this.#buildDate(warningCreatedOnEnd)
               : undefined,
           selectorId:
-          typeof warningSelectorId === 'string'
+            typeof warningSelectorId === 'string'
               ? warningSelectorId
               : undefined,
         },
@@ -75,7 +81,9 @@ export default class ReadSystemsController extends BaseController {
             : undefined,
       });
     } catch (error: any) {
-      return Result.fail<ReadSystemsRequestDto>(typeof error === 'string' ? error : error.message);
+      return Result.fail<ReadSystemsRequestDto>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   };
 
@@ -90,10 +98,15 @@ export default class ReadSystemsController extends BaseController {
     const date = timestamp.match(/[^T]*/s);
     const time = timestamp.match(/(?<=T)[^Z]*/s);
 
-    if ((!date || !date[0] || date[0].length !== 8) || (!time || !time[0] || time[0].length !== 6))
-      throw new Error(
-        `${timestamp} not in format YYYYMMDD"T"HHMMSS"Z"`
-      );
+    if (
+      !date ||
+      !date[0] ||
+      date[0].length !== 8 ||
+      !time ||
+      !time[0] ||
+      time[0].length !== 6
+    )
+      throw new Error(`${timestamp} not in format YYYYMMDD"T"HHMMSS"Z"`);
 
     const year = date[0].slice(0, 4);
     const month = date[0].slice(4, 6);
@@ -106,8 +119,31 @@ export default class ReadSystemsController extends BaseController {
     return Date.parse(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
   };
 
+  #buildAuthDto = (userAccountInfo: UserAccountInfo): ReadSystemsAuthDto => ({
+    organizationId: userAccountInfo.organizationId,
+  });
+
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
+      const token = req.headers.authorization;
+
+      if (!token)
+        return ReadSystemsController.unauthorized(res, 'Unauthorized');
+
+      const getUserAccountInfoResult: Result<UserAccountInfo> =
+        await ReadSystemsController.getUserAccountInfo(
+          token,
+          this.#getAccounts
+        );
+
+      if (!getUserAccountInfoResult.success)
+        return ReadSystemsController.unauthorized(
+          res,
+          getUserAccountInfoResult.error
+        );
+      if (!getUserAccountInfoResult.value)
+        throw new Error('Authorization failed');
+
       const buildDtoResult: Result<ReadSystemsRequestDto> =
         this.#buildRequestDto(req);
 
@@ -116,11 +152,15 @@ export default class ReadSystemsController extends BaseController {
       if (!buildDtoResult.value)
         return ReadSystemsController.badRequest(
           res,
-          'Invalid request query paramerters'
+          'Invalid request query parameters'
         );
 
+      const authDto: ReadSystemsAuthDto = this.#buildAuthDto(
+        getUserAccountInfoResult.value
+      );
+
       const useCaseResult: ReadSystemsResponseDto =
-        await this.#readSystems.execute(buildDtoResult.value);
+        await this.#readSystems.execute(buildDtoResult.value, authDto);
 
       if (useCaseResult.error) {
         return ReadSystemsController.badRequest(res, useCaseResult.error);

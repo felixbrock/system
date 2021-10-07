@@ -8,10 +8,15 @@ export interface DeleteSystemRequestDto {
   id: string;
 }
 
+export interface DeleteSystemAuthDto {
+  jwt: string;
+  organizationId: string;
+}
+
 export type DeleteSystemResponseDto = Result<null>;
 
 export class DeleteSystem
-  implements IUseCase<DeleteSystemRequestDto, DeleteSystemResponseDto>
+  implements IUseCase<DeleteSystemRequestDto, DeleteSystemResponseDto, DeleteSystemAuthDto>
 {
   #systemRepository: ISystemRepository;
 
@@ -26,7 +31,8 @@ export class DeleteSystem
   }
 
   public async execute(
-    request: DeleteSystemRequestDto
+    request: DeleteSystemRequestDto,
+    auth: DeleteSystemAuthDto
   ): Promise<DeleteSystemResponseDto> {
     try {
       const system: System | null = await this.#systemRepository.findOne(
@@ -35,19 +41,25 @@ export class DeleteSystem
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      const deleteSelectorsResult: Result<null> =
-        await this.#deleteSelectors.execute({ systemId: request.id });
+      if (system.organizationId !== auth.organizationId)
+        throw new Error('Not authorized to perform action');
 
-      if (deleteSelectorsResult.error) throw new Error(deleteSelectorsResult.error);
+      const deleteSelectorsResult: Result<null> =
+        await this.#deleteSelectors.execute({ systemId: request.id }, {jwt: auth.jwt});
+
+      if (deleteSelectorsResult.error)
+        throw new Error(deleteSelectorsResult.error);
 
       const deleteSystemResult: Result<null> =
         await this.#systemRepository.deleteOne(request.id);
 
-      if(deleteSystemResult.error) throw new Error(deleteSystemResult.error);
+      if (deleteSystemResult.error) throw new Error(deleteSystemResult.error);
 
       return Result.ok<null>();
-    } catch (error) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+    } catch (error: any) {
+      return Result.fail<null>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   }
 }

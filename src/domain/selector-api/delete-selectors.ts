@@ -6,14 +6,23 @@ export interface DeleteSelectorsRequestDto {
   systemId: string;
 }
 
+export interface DeleteSelectorAuthDto {
+  jwt: string;
+}
+
 export interface ISelectorApiRepository {
-  deleteSelectors(params: URLSearchParams): Promise<Result<null>>;
+  deleteSelectors(params: URLSearchParams, jwt: string): Promise<Result<null>>;
 }
 
 export type DeleteSelectorsResponseDto = Result<null>;
 
 export class DeleteSelectors
-  implements IUseCase<DeleteSelectorsRequestDto, DeleteSelectorsResponseDto>
+  implements
+    IUseCase<
+      DeleteSelectorsRequestDto,
+      DeleteSelectorsResponseDto,
+      DeleteSelectorAuthDto
+    >
 {
   #selectorApiRepository: ISelectorApiRepository;
 
@@ -22,18 +31,23 @@ export class DeleteSelectors
   }
 
   public async execute(
-    request: DeleteSelectorsRequestDto
+    request: DeleteSelectorsRequestDto,
+    auth: DeleteSelectorAuthDto
   ): Promise<DeleteSelectorsResponseDto> {
     try {
-      const selectorResult: Result<null> = await this.#selectorApiRepository.deleteSelectors(
-        new URLSearchParams({systemId: request.systemId})
-      );
+      const selectorResult: Result<null> =
+        await this.#selectorApiRepository.deleteSelectors(
+          new URLSearchParams({ systemId: request.systemId }),
+          auth.jwt
+        );
       if (!selectorResult)
         throw new Error(`No selectors for system ${request.systemId} exist`);
 
       return Result.ok<null>();
-    } catch (error) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+    } catch (error: any) {
+      return Result.fail<null>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   }
 }

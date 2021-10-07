@@ -7,7 +7,7 @@ const systemsRoutes = Router();
 const systemDomain: SystemDomain = app.systemMain;
 
 const readSystemsController = new ReadSystemsController(
-  systemDomain.readSystems
+  systemDomain.readSystems, app.container.resolve('getAccounts')
 );
 
 systemsRoutes.get('/', (req, res) =>

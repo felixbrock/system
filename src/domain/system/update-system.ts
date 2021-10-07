@@ -6,38 +6,39 @@ import Result from '../value-types/transient-types/result';
 import { Warning } from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
 import { ISystemRepository, SystemUpdateDto } from './i-system-repository';
-import {
-  GetOrganization,
-  GetOrganizationDto,
-} from '../account-api/get-organization';
 
 // TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {
   id: string;
   name?: string;
-  organizationId?: string;
   warning?: WarningDto;
+}
+
+export interface UpdateSystemAuthDto {
+  organizationId: string;
 }
 
 export type UpdateSystemResponseDto = Result<SystemDto | null>;
 
 export class UpdateSystem
-  implements IUseCase<UpdateSystemRequestDto, UpdateSystemResponseDto>
+  implements
+    IUseCase<
+      UpdateSystemRequestDto,
+      UpdateSystemResponseDto,
+      UpdateSystemAuthDto
+    >
 {
   #systemRepository: ISystemRepository;
 
-  #getOrganization: GetOrganization;
-
   public constructor(
     systemRepository: ISystemRepository,
-    getOrganization: GetOrganization
   ) {
     this.#systemRepository = systemRepository;
-    this.#getOrganization = getOrganization;
   }
 
   public async execute(
-    request: UpdateSystemRequestDto
+    request: UpdateSystemRequestDto,
+    auth: UpdateSystemAuthDto
   ): Promise<UpdateSystemResponseDto> {
     try {
       const system: System | null = await this.#systemRepository.findOne(
@@ -47,7 +48,8 @@ export class UpdateSystem
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      await this.#validateRequest(request);
+      if (system.organizationId !== auth.organizationId)
+        throw new Error('Not authorized to perform action');
 
       const updateDto = await this.#buildUpdateDto(request);
 
@@ -62,31 +64,12 @@ export class UpdateSystem
     }
   }
 
-  #validateRequest = async (request: UpdateSystemRequestDto): Promise<undefined> => {
-    try {
-      if (request.organizationId) {
-        const readOrganizationResult: Result<GetOrganizationDto | null> =
-          await this.#getOrganization.execute({ id: request.organizationId });
-
-        if (!readOrganizationResult.value)
-          throw new Error(
-            `System's organization ${request.organizationId} does not exist`
-          );
-      }
-      return undefined;
-    } catch (error: any) {
-      return Promise.reject(typeof error === 'string' ? error : error.message);
-    }
-  };
-
   #buildUpdateDto = async (
     request: UpdateSystemRequestDto
   ): Promise<SystemUpdateDto> => {
     const updateDto: SystemUpdateDto = {};
 
     if (request.name) updateDto.name = request.name;
-    if (request.organizationId)
-      updateDto.organizationId = request.organizationId;
 
     if (request.warning) {
       const createResult = Warning.create({

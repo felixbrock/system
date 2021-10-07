@@ -6,7 +6,6 @@ import { SystemDto, buildSystemDto } from './system-dto';
 
 export interface ReadSystemsRequestDto {
   name?: string;
-  organizationId?: string;
   warning?: {
     createdOnStart?: number;
     createdOnEnd?: number;
@@ -16,10 +15,15 @@ export interface ReadSystemsRequestDto {
   modifiedOnEnd?: number;
 }
 
+export interface ReadSystemsAuthDto {
+  organizationId: string;
+}
+
 export type ReadSystemsResponseDto = Result<SystemDto[] | null>;
 
 export class ReadSystems
-  implements IUseCase<ReadSystemsRequestDto, ReadSystemsResponseDto>
+  implements
+    IUseCase<ReadSystemsRequestDto, ReadSystemsResponseDto, ReadSystemsAuthDto>
 {
   #systemRepository: ISystemRepository;
 
@@ -28,13 +32,15 @@ export class ReadSystems
   }
 
   public async execute(
-    request: ReadSystemsRequestDto
+    request: ReadSystemsRequestDto,
+    auth: ReadSystemsAuthDto
   ): Promise<ReadSystemsResponseDto> {
     try {
       const systems: System[] | null = await this.#systemRepository.findBy(
-        this.#buildSystemQueryDto(request)
+        this.#buildSystemQueryDto(request, auth.organizationId)
       );
-      if (!systems) throw new Error(`Queried systems do not exist`);
+      if (!systems || !systems.length)
+        throw new Error(`Queried systems do not exist`);
 
       return Result.ok<SystemDto[]>(
         systems.map((system) => buildSystemDto(system))
@@ -46,12 +52,18 @@ export class ReadSystems
     }
   }
 
-  #buildSystemQueryDto = (request: ReadSystemsRequestDto): SystemQueryDto => {
+  #buildSystemQueryDto = (
+    request: ReadSystemsRequestDto,
+    organizationId: string
+  ): SystemQueryDto => {
     const queryDto: SystemQueryDto = {};
 
+    if (!organizationId) throw new Error('Not authorized to perform action');
+
+    queryDto.organizationId = organizationId;
+
     if (request.name) queryDto.name = request.name;
-    if (request.organizationId)
-      queryDto.organizationId = request.organizationId;
+
     if (
       request.warning &&
       (request.warning.createdOnStart ||

@@ -8,10 +8,15 @@ export interface ReadSystemRequestDto {
   id: string;
 }
 
+export interface ReadSystemAuthDto {
+  organizationId: string;
+}
+
 export type ReadSystemResponseDto = Result<SystemDto | null>;
 
 export class ReadSystem
-  implements IUseCase<ReadSystemRequestDto, ReadSystemResponseDto>
+  implements
+    IUseCase<ReadSystemRequestDto, ReadSystemResponseDto, ReadSystemAuthDto>
 {
   #systemRepository: ISystemRepository;
 
@@ -20,7 +25,8 @@ export class ReadSystem
   }
 
   public async execute(
-    request: ReadSystemRequestDto
+    request: ReadSystemRequestDto,
+    auth: ReadSystemAuthDto
   ): Promise<ReadSystemResponseDto> {
     try {
       const system: System | null = await this.#systemRepository.findOne(
@@ -29,9 +35,14 @@ export class ReadSystem
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
+      if (system.organizationId !== auth.organizationId)
+        throw new Error('Not authorized to perform action');
+
       return Result.ok<SystemDto>(buildSystemDto(system));
-    } catch (error) {
-      return Result.fail<SystemDto>(typeof error === 'string' ? error : error.message);
+    } catch (error: any) {
+      return Result.fail<SystemDto>(
+        typeof error === 'string' ? error : error.message
+      );
     }
   }
 }

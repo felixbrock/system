@@ -1,26 +1,33 @@
 // TODO: Violation of control flow. DI for express instead
 import { Request, Response } from 'express';
+import { GetAccounts } from '../../../domain/account-api/get-accounts';
 import Result from '../../../domain/value-types/transient-types/result';
 import {
   CreateWarning,
+  CreateWarningAuthDto,
   CreateWarningRequestDto,
   CreateWarningResponseDto,
 } from '../../../domain/warning/create-warning';
-import { BaseController, CodeHttp } from '../../shared/base-controller';
+import {
+  BaseController,
+  CodeHttp,
+  UserAccountInfo,
+} from '../../shared/base-controller';
 
 export default class CreateWarningController extends BaseController {
   #createWarning: CreateWarning;
 
-  public constructor(createWarning: CreateWarning) {
+  #getAccounts: GetAccounts;
+
+  public constructor(createWarning: CreateWarning, getAccounts: GetAccounts) {
     super();
     this.#createWarning = createWarning;
+    this.#getAccounts = getAccounts;
   }
 
-  #buildRequestDto = (
-    httpRequest: Request
-  ): Result<CreateWarningRequestDto> => {
-    const { systemId } = httpRequest.params;
-    const { selectorId } = httpRequest.body;
+  #buildRequestDto = (req: Request): Result<CreateWarningRequestDto> => {
+    const { systemId } = req.params;
+    const { selectorId } = req.body;
     if (systemId)
       return Result.ok<CreateWarningRequestDto>({
         systemId,
@@ -31,8 +38,31 @@ export default class CreateWarningController extends BaseController {
     );
   };
 
+  #buildAuthDto = (userAccountInfo: UserAccountInfo): CreateWarningAuthDto => ({
+    organizationId: userAccountInfo.organizationId,
+  });
+
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
+      const token = req.headers.authorization;
+
+      if (!token)
+        return CreateWarningController.unauthorized(res, 'Unauthorized');
+
+      const getUserAccountInfoResult: Result<UserAccountInfo> =
+        await CreateWarningController.getUserAccountInfo(
+          token,
+          this.#getAccounts
+        );
+
+      if (!getUserAccountInfoResult.success)
+        return CreateWarningController.unauthorized(
+          res,
+          getUserAccountInfoResult.error
+        );
+      if (!getUserAccountInfoResult.value)
+        throw new Error('Authorization failed');
+
       const buildDtoResult: Result<CreateWarningRequestDto> =
         this.#buildRequestDto(req);
 
@@ -41,11 +71,15 @@ export default class CreateWarningController extends BaseController {
       if (!buildDtoResult.value)
         return CreateWarningController.badRequest(
           res,
-          'Invalid request paramerters'
+          'Invalid request parameters'
         );
 
+      const authDto: CreateWarningAuthDto = this.#buildAuthDto(
+        getUserAccountInfoResult.value
+      );
+
       const useCaseResult: CreateWarningResponseDto =
-        await this.#createWarning.execute(buildDtoResult.value);
+        await this.#createWarning.execute(buildDtoResult.value, authDto);
 
       if (useCaseResult.error) {
         return CreateWarningController.badRequest(res, useCaseResult.error);

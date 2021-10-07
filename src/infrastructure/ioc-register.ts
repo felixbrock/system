@@ -14,6 +14,7 @@ import SelectorApiRepository from './persistence/selector-api-repository';
 import { ReadSystems } from '../domain/system/read-systems';
 import { GetOrganization } from '../domain/account-api/get-organization';
 import AccountApiRepository from './persistence/account-api-repository';
+import { GetAccounts } from '../domain/account-api/get-accounts';
 
 const iocRegister = createContainer({ injectionMode: InjectionMode.CLASSIC });
 
@@ -30,10 +31,11 @@ iocRegister.register({
 
   deleteSelectors: asClass(DeleteSelectors),
   getOrganization: asClass(GetOrganization),
+  getAccounts: asClass(GetAccounts),
 
   systemRepository: asClass(SystemRepository),
   selectorApiRepository: asClass(SelectorApiRepository),
-  accountApiRepository: asClass(AccountApiRepository)
+  accountApiRepository: asClass(AccountApiRepository),
 });
 
 const systemMain = iocRegister.resolve<SystemDomain>('systemDomain');
