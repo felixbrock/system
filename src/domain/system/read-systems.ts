@@ -39,7 +39,7 @@ export class ReadSystems
       const systems: System[] | null = await this.#systemRepository.findBy(
         this.#buildSystemQueryDto(request, auth.organizationId)
       );
-      if (!systems || !systems.length)
+      if (!systems)
         throw new Error(`Queried systems do not exist`);
 
       return Result.ok<SystemDto[]>(

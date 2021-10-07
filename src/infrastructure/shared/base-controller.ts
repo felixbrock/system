@@ -46,7 +46,8 @@ export abstract class BaseController {
   ): Promise<Result<UserAccountInfo>> {
     if (!token) return Result.fail('Unauthorized');
 
-    const authPayload = jwt.decode(token, { json: true });
+    const authPayload = jwt.decode(token.split(' ')[1], { json: true });
+    
     if (!authPayload) return Result.fail('Unauthorized - No auth payload');
 
     try {

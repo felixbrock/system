@@ -12,7 +12,6 @@ import { DeleteSystem } from '../domain/system/delete-system';
 import { DeleteSelectors } from '../domain/selector-api/delete-selectors';
 import SelectorApiRepository from './persistence/selector-api-repository';
 import { ReadSystems } from '../domain/system/read-systems';
-import { GetOrganization } from '../domain/account-api/get-organization';
 import AccountApiRepository from './persistence/account-api-repository';
 import { GetAccounts } from '../domain/account-api/get-accounts';
 
@@ -30,7 +29,6 @@ iocRegister.register({
   createWarning: asClass(CreateWarning),
 
   deleteSelectors: asClass(DeleteSelectors),
-  getOrganization: asClass(GetOrganization),
   getAccounts: asClass(GetAccounts),
 
   systemRepository: asClass(SystemRepository),
