@@ -9,14 +9,14 @@ export interface GetAccountsRequestDto {
   userId: string;
 }
 
-export interface GetAccountAuthDto {
+export interface GetAccountsAuthDto {
   jwt: string;
 }
 
 export type GetAccountsResponseDto = Result<AccountDto[]>;
 
 export class GetAccounts
-  implements IUseCase<GetAccountsRequestDto, GetAccountsResponseDto, GetAccountAuthDto>
+  implements IUseCase<GetAccountsRequestDto, GetAccountsResponseDto, GetAccountsAuthDto>
 {
   #accountApiRepository: IAccountApiRepository;
 
@@ -26,7 +26,7 @@ export class GetAccounts
 
   public async execute(
     request: GetAccountsRequestDto,
-    auth: GetAccountAuthDto
+    auth: GetAccountsAuthDto
   ): Promise<GetAccountsResponseDto> {
     try {
       const getAccountsResponse: AccountDto[] =
