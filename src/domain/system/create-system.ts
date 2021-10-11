@@ -57,7 +57,7 @@ export class CreateSystem
         );
 
       if (!readSystemsResult.success) throw new Error(readSystemsResult.error);
-      if (!readSystemsResult.value) throw new Error('Reading selectors failed');
+      if (!readSystemsResult.value) throw new Error('Reading systems failed');
       if (readSystemsResult.value.length)
         throw new Error(
           `System ${readSystemsResult.value[0].name} is already registered under ${readSystemsResult.value[0].id}`

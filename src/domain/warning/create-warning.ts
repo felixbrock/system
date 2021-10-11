@@ -85,7 +85,6 @@ export class CreateWarning
       { organizationId }
     );
 
-    if (!readSystemResult.value) throw new Error('Selector deletion failed');
     if (!readSystemResult.success) throw new Error(readSystemResult.error);
     if (!readSystemResult.value)
       throw new Error(`System with id ${systemId} does not exist`);

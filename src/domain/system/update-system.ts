@@ -50,10 +50,7 @@ export class UpdateSystem
         { organizationId: auth.organizationId }
       );
 
-      if (!readSystemResult.value) throw new Error('Selector deletion failed');
       if (!readSystemResult.success) throw new Error(readSystemResult.error);
-      if (!readSystemResult.value)
-        throw new Error(`System with id ${request.id} does not exist`);
 
       if (!readSystemResult.value)
         throw new Error(`System with id ${request.id} does not exist`);
