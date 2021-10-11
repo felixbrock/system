@@ -39,14 +39,16 @@ export default class DeleteSystemController extends BaseController {
 
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
-      const token = req.headers.authorization;
+      const authHeader = req.headers.authorization;    
 
-      if (!token)
+      if (!authHeader)
         return DeleteSystemController.unauthorized(res, 'Unauthorized');
 
+      const jwt = authHeader.split(' ')[1];
+    
       const getUserAccountInfoResult: Result<UserAccountInfo> =
         await DeleteSystemController.getUserAccountInfo(
-          token,
+          jwt,
           this.#getAccounts
         );
 
@@ -61,7 +63,7 @@ export default class DeleteSystemController extends BaseController {
       const requestDto: DeleteSystemRequestDto = this.#buildRequestDto(req);
       const authDto: DeleteSystemAuthDto = this.#buildAuthDto(
         getUserAccountInfoResult.value,
-        token
+        jwt
       );
 
       const useCaseResult: DeleteSystemResponseDto =
