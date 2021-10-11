@@ -5,6 +5,7 @@ import IUseCase from '../services/use-case';
 import { System, SystemProperties } from '../entities/system';
 import { SystemDto, buildSystemDto } from './system-dto';
 import { ISystemRepository } from './i-system-repository';
+import { ReadSystems, ReadSystemsResponseDto } from './read-systems';
 
 export interface CreateSystemRequestDto {
   name: string;
@@ -26,8 +27,14 @@ export class CreateSystem
 {
   #systemRepository: ISystemRepository;
 
-  public constructor(systemRepository: ISystemRepository) {
+  #readSystems: ReadSystems;
+
+  public constructor(
+    systemRepository: ISystemRepository,
+    readSystems: ReadSystems
+  ) {
     this.#systemRepository = systemRepository;
+    this.#readSystems = readSystems;
   }
 
   public async execute(
@@ -41,12 +48,19 @@ export class CreateSystem
     if (!system.value) return system;
 
     try {
-      const readSystemResult: SystemDto[] = await this.#systemRepository.findBy(
-        { name: system.value.name }
-      );
-      if (readSystemResult.length)
+      const readSystemsResult: ReadSystemsResponseDto =
+        await this.#readSystems.execute(
+          {
+            name: system.value.name,
+          },
+          { organizationId: auth.organizationId }
+        );
+
+      if (!readSystemsResult.success) throw new Error(readSystemsResult.error);
+      if (!readSystemsResult.value) throw new Error('Reading selectors failed');
+      if (readSystemsResult.value.length)
         throw new Error(
-          `System ${readSystemResult[0].name} is already registered under ${readSystemResult[0].id}`
+          `System ${readSystemsResult.value[0].name} is already registered under ${readSystemsResult.value[0].id}`
         );
 
       await this.#systemRepository.insertOne(system.value);

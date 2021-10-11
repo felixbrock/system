@@ -1,11 +1,11 @@
 // TODO Violation of Dependency Rule
 import IUseCase from '../services/use-case';
-import { System } from '../entities/system';
-import { SystemDto, buildSystemDto } from './system-dto';
+import { SystemDto} from './system-dto';
 import Result from '../value-types/transient-types/result';
 import { Warning } from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
 import { ISystemRepository, SystemUpdateDto } from './i-system-repository';
+import { ReadSystem } from './read-system';
 
 // TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {
@@ -30,10 +30,14 @@ export class UpdateSystem
 {
   #systemRepository: ISystemRepository;
 
+  #readSystem: ReadSystem;
+
   public constructor(
     systemRepository: ISystemRepository,
+    readSystem: ReadSystem
   ) {
     this.#systemRepository = systemRepository;
+    this.#readSystem = readSystem;
   }
 
   public async execute(
@@ -41,14 +45,20 @@ export class UpdateSystem
     auth: UpdateSystemAuthDto
   ): Promise<UpdateSystemResponseDto> {
     try {
-      const system: System | null = await this.#systemRepository.findOne(
-        request.id
+      const readSystemResult = await this.#readSystem.execute(
+        { id: request.id },
+        { organizationId: auth.organizationId }
       );
 
-      if (!system)
+      if (!readSystemResult.value) throw new Error('Selector deletion failed');
+      if (!readSystemResult.success) throw new Error(readSystemResult.error);
+      if (!readSystemResult.value)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      if (system.organizationId !== auth.organizationId)
+      if (!readSystemResult.value)
+        throw new Error(`System with id ${request.id} does not exist`);
+
+      if (readSystemResult.value.organizationId !== auth.organizationId)
         throw new Error('Not authorized to perform action');
 
       const updateDto = await this.#buildUpdateDto(request);
@@ -56,7 +66,7 @@ export class UpdateSystem
       await this.#systemRepository.updateOne(request.id, updateDto);
 
       // TODO - Doesn't return the right object. Fix.
-      return Result.ok<SystemDto>(buildSystemDto(system));
+      return Result.ok<SystemDto>(readSystemResult.value);
     } catch (error: any) {
       return Result.fail<SystemDto>(
         typeof error === 'string' ? error : error.message

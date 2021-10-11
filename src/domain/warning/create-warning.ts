@@ -4,7 +4,7 @@ import { Warning } from '../value-types/warning';
 import { buildWarningDto, WarningDto } from './warning-dto';
 import { SystemDto } from '../system/system-dto';
 import { UpdateSystem } from '../system/update-system';
-import { ISystemRepository } from '../system/i-system-repository';
+import { ReadSystem } from '../system/read-system';
 
 export interface CreateWarningRequestDto {
   systemId: string;
@@ -25,16 +25,16 @@ export class CreateWarning
       CreateWarningAuthDto
     >
 {
-  #systemRepository: ISystemRepository;
-
   #updateSystem: UpdateSystem;
 
+  #readSystem: ReadSystem;
+
   public constructor(
-    systemRepository: ISystemRepository,
-    updateSystem: UpdateSystem
+    updateSystem: UpdateSystem,
+    readSystem: ReadSystem
   ) {
-    this.#systemRepository = systemRepository;
     this.#updateSystem = updateSystem;
+    this.#readSystem = readSystem;
   }
 
   public async execute(
@@ -80,13 +80,17 @@ export class CreateWarning
     systemId: string,
     organizationId: string
   ): Promise<Result<null>> {
-    const system: SystemDto | null = await this.#systemRepository.findOne(
-      systemId
+    const readSystemResult = await this.#readSystem.execute(
+      { id: systemId },
+      { organizationId }
     );
-    if (!system)
-      return Result.fail<null>(`System with id ${systemId} does not exist`);
 
-    if (system.organizationId !== organizationId)
+    if (!readSystemResult.value) throw new Error('Selector deletion failed');
+    if (!readSystemResult.success) throw new Error(readSystemResult.error);
+    if (!readSystemResult.value)
+      throw new Error(`System with id ${systemId} does not exist`);
+
+    if (readSystemResult.value.organizationId !== organizationId)
       return Result.fail<null>(`Not authorized to perform action`);
 
     return Result.ok<null>(null);

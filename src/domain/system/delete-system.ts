@@ -1,8 +1,8 @@
 import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
-import { System } from '../entities/system';
 import { DeleteSelectors } from '../selector-api/delete-selectors';
 import { ISystemRepository } from './i-system-repository';
+import { ReadSystem } from './read-system';
 
 export interface DeleteSystemRequestDto {
   id: string;
@@ -16,18 +16,27 @@ export interface DeleteSystemAuthDto {
 export type DeleteSystemResponseDto = Result<null>;
 
 export class DeleteSystem
-  implements IUseCase<DeleteSystemRequestDto, DeleteSystemResponseDto, DeleteSystemAuthDto>
+  implements
+    IUseCase<
+      DeleteSystemRequestDto,
+      DeleteSystemResponseDto,
+      DeleteSystemAuthDto
+    >
 {
   #systemRepository: ISystemRepository;
 
   #deleteSelectors: DeleteSelectors;
 
+  #readSystem: ReadSystem;
+
   public constructor(
     systemRepository: ISystemRepository,
-    deleteSelectors: DeleteSelectors
+    deleteSelectors: DeleteSelectors,
+    readSystem: ReadSystem
   ) {
     this.#systemRepository = systemRepository;
     this.#deleteSelectors = deleteSelectors;
+    this.#readSystem = readSystem;
   }
 
   public async execute(
@@ -35,17 +44,24 @@ export class DeleteSystem
     auth: DeleteSystemAuthDto
   ): Promise<DeleteSystemResponseDto> {
     try {
-      const system: System | null = await this.#systemRepository.findOne(
-        request.id
+      const readSystemResult = await this.#readSystem.execute(
+        { id: request.id },
+        { organizationId: auth.organizationId }
       );
-      if (!system)
+
+      if (!readSystemResult.value) throw new Error('Selector deletion failed');
+      if (!readSystemResult.success) throw new Error(readSystemResult.error);
+      if (!readSystemResult.value)
         throw new Error(`System with id ${request.id} does not exist`);
 
-      if (system.organizationId !== auth.organizationId)
+      if (readSystemResult.value.organizationId !== auth.organizationId)
         throw new Error('Not authorized to perform action');
 
       const deleteSelectorsResult: Result<null> =
-        await this.#deleteSelectors.execute({ systemId: request.id }, {jwt: auth.jwt});
+        await this.#deleteSelectors.execute(
+          { systemId: request.id },
+          { jwt: auth.jwt }
+        );
 
       if (deleteSelectorsResult.error)
         throw new Error(deleteSelectorsResult.error);
