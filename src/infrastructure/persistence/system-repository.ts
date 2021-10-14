@@ -6,6 +6,7 @@ import {
   ObjectId,
   UpdateResult,
 } from 'mongodb';
+import sanitize from 'mongo-sanitize';
 import { System, SystemProperties } from '../../domain/entities/system';
 import {
   ISystemRepository,
@@ -37,7 +38,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const db = await connect(client);
     const result: any = await db
       .collection(collectionName)
-      .findOne({ _id: new ObjectId(id) });
+      .findOne({ _id: new ObjectId(sanitize(id)) });
 
     close(client);
 
@@ -53,7 +54,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     const db = await connect(client);
     const result: FindCursor = await db
       .collection(collectionName)
-      .find(this.#buildFilter(systemQueryDto));
+      .find(this.#buildFilter(sanitize(systemQueryDto)));
     const results = await result.toArray();
 
     close(client);
@@ -117,7 +118,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       const db = await connect(client);
       const result: InsertOneResult<Document> = await db
         .collection(collectionName)
-        .insertOne(this.#toPersistence(system));
+        .insertOne(this.#toPersistence(sanitize(system)));
 
       if (!result.acknowledged)
         throw new Error('System creation failed. Insert not acknowledged');
@@ -140,8 +141,8 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       const result: Document | UpdateResult = await db
         .collection(collectionName)
         .updateOne(
-          { _id: new ObjectId(id) },
-          this.#buildUpdateFilter(updateDto)
+          { _id: new ObjectId(sanitize(id)) },
+          this.#buildUpdateFilter(sanitize(updateDto))
         );
 
       if (!result.acknowledged)
@@ -178,7 +179,7 @@ export default class SystemRepositoryImpl implements ISystemRepository {
       const db = await connect(client);
       const result: DeleteResult = await db
         .collection(collectionName)
-        .deleteOne({ _id: new ObjectId(id) });
+        .deleteOne({ _id: new ObjectId(sanitize(id)) });
 
       if (!result.acknowledged)
         throw new Error('System delete failed. Delete not acknowledged');
