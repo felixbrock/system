@@ -64,7 +64,7 @@ export default class CreateSystemController extends BaseController {
       const useCaseResult: CreateSystemResponseDto =
         await this.#createSystem.execute(requestDto, authDto);
 
-      if (useCaseResult.error) {
+      if (!useCaseResult.success) {
         return CreateSystemController.badRequest(res, useCaseResult.error);
       }
 

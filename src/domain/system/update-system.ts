@@ -1,13 +1,11 @@
 // TODO Violation of Dependency Rule
 import IUseCase from '../services/use-case';
-import { SystemDto } from './system-dto';
 import Result from '../value-types/transient-types/result';
 import { Warning } from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
 import { ISystemRepository, SystemUpdateDto } from './i-system-repository';
 import { ReadSystem } from './read-system';
 
-// TODO - This would be a PATCH use-case since not all fields need to be necessarily updated
 export interface UpdateSystemRequestDto {
   id: string;
   name?: string;

@@ -66,7 +66,7 @@ export default class DeleteSystemController extends BaseController {
       const useCaseResult: DeleteSystemResponseDto =
         await this.#deleteSystem.execute(requestDto, authDto);
 
-      if (useCaseResult.error) {
+      if (!useCaseResult.success) {
         return DeleteSystemController.badRequest(res, useCaseResult.error);
       }
 

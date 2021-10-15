@@ -144,7 +144,7 @@ export default class ReadSystemsController extends BaseController {
       const useCaseResult: ReadSystemsResponseDto =
         await this.#readSystems.execute(buildDtoResult, authDto);
 
-      if (useCaseResult.error) {
+      if (!useCaseResult.success) {
         return ReadSystemsController.badRequest(res, useCaseResult.error);
       }
 

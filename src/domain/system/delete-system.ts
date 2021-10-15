@@ -62,7 +62,7 @@ export class DeleteSystem
           { jwt: auth.jwt }
         );
 
-      if (deleteSelectorsResult.error)
+      if (!deleteSelectorsResult.success)
         throw new Error(deleteSelectorsResult.error);
 
       const deleteSystemResult: string = await this.#systemRepository.deleteOne(

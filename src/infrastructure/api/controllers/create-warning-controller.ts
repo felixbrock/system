@@ -71,9 +71,9 @@ export default class CreateWarningController extends BaseController {
       );
 
       const useCaseResult: CreateWarningResponseDto =
-        await this.#createWarning.execute(buildDtoResult.value, authDto);
+        await this.#createWarning.execute(buildDtoResult, authDto);
 
-      if (useCaseResult.error) {
+      if (!useCaseResult.success) {
         return CreateWarningController.badRequest(res, useCaseResult.error);
       }
 
