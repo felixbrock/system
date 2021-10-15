@@ -1,7 +1,6 @@
 import Result from '../value-types/transient-types/result';
 import IUseCase from '../services/use-case';
 import { buildSystemDto, SystemDto } from './system-dto';
-import { System } from '../entities/system';
 import { ISystemRepository } from './i-system-repository';
 
 export interface ReadSystemRequestDto {
@@ -12,7 +11,7 @@ export interface ReadSystemAuthDto {
   organizationId: string;
 }
 
-export type ReadSystemResponseDto = Result<SystemDto | null>;
+export type ReadSystemResponseDto = Result<SystemDto>;
 
 export class ReadSystem
   implements
@@ -29,20 +28,18 @@ export class ReadSystem
     auth: ReadSystemAuthDto
   ): Promise<ReadSystemResponseDto> {
     try {
-      const system: System | null = await this.#systemRepository.findOne(
-        request.id
-      );
+      const system = await this.#systemRepository.findOne(request.id);
       if (!system)
         throw new Error(`System with id ${request.id} does not exist`);
 
       if (system.organizationId !== auth.organizationId)
         throw new Error('Not authorized to perform action');
 
-      return Result.ok<SystemDto>(buildSystemDto(system));
-    } catch (error: any) {
-      return Result.fail<SystemDto>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(buildSystemDto(system));
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 }

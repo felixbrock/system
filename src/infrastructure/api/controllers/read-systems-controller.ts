@@ -55,7 +55,7 @@ export default class ReadSystemsController extends BaseController {
       );
 
     try {
-      return Result.ok<ReadSystemsRequestDto>({
+      return Result.ok({
         name: typeof name === 'string' ? name : undefined,
         warning: {
           createdOnStart:
@@ -80,10 +80,10 @@ export default class ReadSystemsController extends BaseController {
             ? this.#buildDate(modifiedOnEnd)
             : undefined,
       });
-    } catch (error: any) {
-      return Result.fail<ReadSystemsRequestDto>(
-        typeof error === 'string' ? error : error.message
-      );
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   };
 
@@ -125,18 +125,15 @@ export default class ReadSystemsController extends BaseController {
 
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
-      const authHeader = req.headers.authorization;    
+      const authHeader = req.headers.authorization;
 
       if (!authHeader)
         return ReadSystemsController.unauthorized(res, 'Unauthorized');
 
       const jwt = authHeader.split(' ')[1];
-    
+
       const getUserAccountInfoResult: Result<UserAccountInfo> =
-        await ReadSystemsController.getUserAccountInfo(
-          jwt,
-          this.#getAccounts
-        );      
+        await ReadSystemsController.getUserAccountInfo(jwt, this.#getAccounts);
 
       if (!getUserAccountInfoResult.success)
         return ReadSystemsController.unauthorized(
@@ -169,8 +166,11 @@ export default class ReadSystemsController extends BaseController {
       }
 
       return ReadSystemsController.ok(res, useCaseResult.value, CodeHttp.OK);
-    } catch (error: any) {
-      return ReadSystemsController.fail(res, error);
+    } catch (error: unknown) {
+      if (typeof error === 'string')
+        return ReadSystemsController.fail(res, error);
+      if (error instanceof Error) return ReadSystemsController.fail(res, error);
+      return ReadSystemsController.fail(res, 'Unknown error occured');
     }
   }
 }

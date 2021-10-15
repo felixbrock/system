@@ -15,7 +15,7 @@ export interface CreateSystemAuthDto {
   organizationId: string;
 }
 
-export type CreateSystemResponseDto = Result<SystemDto | null>;
+export type CreateSystemResponseDto = Result<SystemDto>;
 
 export class CreateSystem
   implements
@@ -41,7 +41,7 @@ export class CreateSystem
     request: CreateSystemRequestDto,
     auth: CreateSystemAuthDto
   ): Promise<CreateSystemResponseDto> {
-    const system: Result<System | null> = this.#createSystem(
+    const system: Result<System> = this.#createSystem(
       request,
       auth.organizationId
     );
@@ -65,18 +65,18 @@ export class CreateSystem
 
       await this.#systemRepository.insertOne(system.value);
 
-      return Result.ok<SystemDto>(buildSystemDto(system.value));
-    } catch (error: any) {
-      return Result.fail<SystemDto>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(buildSystemDto(system.value));
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 
   #createSystem = (
     request: CreateSystemRequestDto,
     organizationId: string
-  ): Result<System | null> => {
+  ): Result<System> => {
     const systemProperties: SystemProperties = {
       id: new ObjectId().toHexString(),
       name: request.name,

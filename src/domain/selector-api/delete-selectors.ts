@@ -11,10 +11,10 @@ export interface DeleteSelectorAuthDto {
 }
 
 export interface ISelectorApiRepository {
-  deleteSelectors(params: URLSearchParams, jwt: string): Promise<Result<null>>;
+  deleteSelectors(params: URLSearchParams, jwt: string): Promise<string>;
 }
 
-export type DeleteSelectorsResponseDto = Result<null>;
+export type DeleteSelectorsResponseDto = Result<string>;
 
 export class DeleteSelectors
   implements
@@ -35,7 +35,7 @@ export class DeleteSelectors
     auth: DeleteSelectorAuthDto
   ): Promise<DeleteSelectorsResponseDto> {
     try {
-      const selectorResult: Result<null> =
+      const selectorResult: string =
         await this.#selectorApiRepository.deleteSelectors(
           new URLSearchParams({ systemId: request.systemId }),
           auth.jwt
@@ -43,11 +43,11 @@ export class DeleteSelectors
       if (!selectorResult)
         throw new Error(`No selectors for system ${request.systemId} exist`);
 
-      return Result.ok<null>();
-    } catch (error: any) {
-      return Result.fail<null>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(selectorResult);
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 }

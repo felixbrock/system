@@ -28,7 +28,24 @@ interface SystemPersistence {
   organizationId: string;
   warnings: WarningPersistence[];
   modifiedOn: number;
-};
+}
+
+interface WarningsQueryFilter {
+  selectorId?: string;
+  createdOn?: { [key: string]: number };
+}
+
+interface SystemQueryFilter {
+  name?: string;
+  organizationId?: string;
+  modifiedOn?: { [key: string]: number };
+  warnings?: WarningsQueryFilter;
+}
+
+interface SystemUpdateFilter {
+  $set: { [key: string]: any };
+  $push: { [key: string]: any };
+}
 
 const collectionName = 'systems';
 
@@ -48,29 +65,36 @@ export default class SystemRepositoryImpl implements ISystemRepository {
   };
 
   public findBy = async (systemQueryDto: SystemQueryDto): Promise<System[]> => {
-    if (!Object.keys(systemQueryDto).length) return this.all();
+    try {
+      if (!Object.keys(systemQueryDto).length) return await this.all();
 
-    const client = createClient();
-    const db = await connect(client);
-    const result: FindCursor = await db
-      .collection(collectionName)
-      .find(this.#buildFilter(sanitize(systemQueryDto)));
-    const results = await result.toArray();
+      const client = createClient();
+      const db = await connect(client);
+      const result: FindCursor = await db
+        .collection(collectionName)
+        .find(this.#buildFilter(sanitize(systemQueryDto)));
+      const results = await result.toArray();
 
-    close(client);
+      close(client);
 
-    if (!results || !results.length) return [];
+      if (!results || !results.length) return [];
 
-    return results.map((element: any) =>
-      this.#toEntity(this.#buildProperties(element))
-    );
+      return results.map((element: any) =>
+        this.#toEntity(this.#buildProperties(element))
+      );
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Promise.reject(error);
+      if (error instanceof Error) return Promise.reject(error.message);
+      return Promise.reject(new Error('Unknown error occured'));
+    }
   };
 
-  #buildFilter = (systemQueryDto: SystemQueryDto): any => {
+  #buildFilter = (systemQueryDto: SystemQueryDto): SystemQueryFilter => {
     const filter: { [key: string]: any } = {};
 
     if (systemQueryDto.name) filter.name = systemQueryDto.name;
-    if (systemQueryDto.organizationId) filter.organizationId = systemQueryDto.organizationId;
+    if (systemQueryDto.organizationId)
+      filter.organizationId = systemQueryDto.organizationId;
 
     const modifiedOnFilter: { [key: string]: number } = {};
     if (systemQueryDto.modifiedOnStart)
@@ -99,22 +123,28 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
   public all = async (): Promise<System[]> => {
     const client = createClient();
-    const db = await connect(client);
-    const result: FindCursor = await db.collection(collectionName).find();
-    const results = await result.toArray();
+    try {
+      const db = await connect(client);
+      const result: FindCursor = await db.collection(collectionName).find();
+      const results = await result.toArray();
 
-    close(client);
+      close(client);
 
-    if (!results || !results.length) return [];
+      if (!results || !results.length) return [];
 
-    return results.map((element: any) =>
-      this.#toEntity(this.#buildProperties(element))
-    );
+      return results.map((element: any) =>
+        this.#toEntity(this.#buildProperties(element))
+      );
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Promise.reject(error);
+      if (error instanceof Error) return Promise.reject(error.message);
+      return Promise.reject(new Error('Unknown error occured'));
+    }
   };
 
-  public insertOne = async (system: System): Promise<Result<null>> => {
+  public insertOne = async (system: System): Promise<string> => {
+    const client = createClient();
     try {
-      const client = createClient();
       const db = await connect(client);
       const result: InsertOneResult<Document> = await db
         .collection(collectionName)
@@ -125,18 +155,20 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
       close(client);
 
-      return Result.ok<null>();
-    } catch (error: any) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+      return result.insertedId.toHexString();
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Promise.reject(error);
+      if (error instanceof Error) return Promise.reject(error.message);
+      return Promise.reject(new Error('Unknown error occured'));
     }
   };
 
   public updateOne = async (
     id: string,
     updateDto: SystemUpdateDto
-  ): Promise<Result<null>> => {
+  ): Promise<string> => {
+    const client = createClient();
     try {
-      const client = createClient();
       const db = await connect(client);
       const result: Document | UpdateResult = await db
         .collection(collectionName)
@@ -150,32 +182,35 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
       close(client);
 
-      return Result.ok<null>();
-    } catch (error: any) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+      return result.upsertedId;
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Promise.reject(error);
+      if (error instanceof Error) return Promise.reject(error.message);
+      return Promise.reject(new Error('Unknown error occured'));
     }
   };
 
-  #buildUpdateFilter = (systemUpdateDto: SystemUpdateDto): any => {
-    const filter: { [key: string]: any } = {};
+  #buildUpdateFilter = (
+    systemUpdateDto: SystemUpdateDto
+  ): SystemUpdateFilter => {
     const setFilter: { [key: string]: any } = {};
     const pushFilter: { [key: string]: any } = {};
 
-    if (systemUpdateDto.name) filter.name = systemUpdateDto.name;
-    if (systemUpdateDto.organizationId) filter.organizationId = systemUpdateDto.organizationId;
+    if (systemUpdateDto.name) setFilter.name = systemUpdateDto.name;
+    if (systemUpdateDto.organizationId)
+      setFilter.organizationId = systemUpdateDto.organizationId;
     if (systemUpdateDto.modifiedOn)
-      filter.modifiedOn = systemUpdateDto.modifiedOn;
+      setFilter.modifiedOn = systemUpdateDto.modifiedOn;
 
     if (systemUpdateDto.warning)
       pushFilter.warnings = this.#warningToPersistence(systemUpdateDto.warning);
 
-    if (Object.keys(setFilter).length) filter.$set = setFilter;
-    if (Object.keys(pushFilter).length) filter.$push = pushFilter;
+    return { $set: setFilter, $push: pushFilter };
   };
 
-  public deleteOne = async (id: string): Promise<Result<null>> => {
+  public deleteOne = async (id: string): Promise<string> => {
+    const client = createClient();
     try {
-      const client = createClient();
       const db = await connect(client);
       const result: DeleteResult = await db
         .collection(collectionName)
@@ -186,9 +221,11 @@ export default class SystemRepositoryImpl implements ISystemRepository {
 
       close(client);
 
-      return Result.ok<null>();
-    } catch (error: any) {
-      return Result.fail<null>(typeof error === 'string' ? error : error.message);
+      return result.deletedCount.toString();
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Promise.reject(error);
+      if (error instanceof Error) return Promise.reject(error.message);
+      return Promise.reject(new Error('Unknown error occured'));
     }
   };
 

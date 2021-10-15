@@ -39,18 +39,15 @@ export default class DeleteSystemController extends BaseController {
 
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
-      const authHeader = req.headers.authorization;    
+      const authHeader = req.headers.authorization;
 
       if (!authHeader)
         return DeleteSystemController.unauthorized(res, 'Unauthorized');
 
       const jwt = authHeader.split(' ')[1];
-    
+
       const getUserAccountInfoResult: Result<UserAccountInfo> =
-        await DeleteSystemController.getUserAccountInfo(
-          jwt,
-          this.#getAccounts
-        );
+        await DeleteSystemController.getUserAccountInfo(jwt, this.#getAccounts);
 
       if (!getUserAccountInfoResult.success)
         return DeleteSystemController.unauthorized(
@@ -74,8 +71,12 @@ export default class DeleteSystemController extends BaseController {
       }
 
       return DeleteSystemController.ok(res, useCaseResult.value, CodeHttp.OK);
-    } catch (error: any) {
-      return DeleteSystemController.fail(res, error);
+    } catch (error: unknown) {
+      if (typeof error === 'string')
+        return DeleteSystemController.fail(res, error);
+      if (error instanceof Error)
+        return DeleteSystemController.fail(res, error);
+      return DeleteSystemController.fail(res, 'Unknown error occured');
     }
   }
 }

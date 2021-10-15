@@ -8,7 +8,7 @@ export interface DiscoveredService {
   port: string;
 }
 
-export const discoverService =  async (
+export const discoverService = async (
   namespaceName: string,
   serviceName: string
 ): Promise<DiscoveredService> => {
@@ -40,7 +40,9 @@ export const discoverService =  async (
       ip: attributes.AWS_INSTANCE_IPV4,
       port: attributes.AWS_INSTANCE_PORT,
     };
-  } catch (error: any) {
-    return Promise.reject(typeof error === 'string' ? error : error.message);
+  } catch (error: unknown) {
+    if (typeof error === 'string') return Promise.reject(error);
+    if (error instanceof Error) return Promise.reject(error.message);
+    return Promise.reject(new Error('Unknown error occured'));
   }
 };

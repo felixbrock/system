@@ -13,7 +13,7 @@ export interface DeleteSystemAuthDto {
   organizationId: string;
 }
 
-export type DeleteSystemResponseDto = Result<null>;
+export type DeleteSystemResponseDto = Result<string>;
 
 export class DeleteSystem
   implements
@@ -48,7 +48,7 @@ export class DeleteSystem
         { id: request.id },
         { organizationId: auth.organizationId }
       );
-      
+
       if (!readSystemResult.success) throw new Error(readSystemResult.error);
       if (!readSystemResult.value)
         throw new Error(`System with id ${request.id} does not exist`);
@@ -56,7 +56,7 @@ export class DeleteSystem
       if (readSystemResult.value.organizationId !== auth.organizationId)
         throw new Error('Not authorized to perform action');
 
-      const deleteSelectorsResult: Result<null> =
+      const deleteSelectorsResult: Result<string> =
         await this.#deleteSelectors.execute(
           { systemId: request.id },
           { jwt: auth.jwt }
@@ -65,16 +65,15 @@ export class DeleteSystem
       if (deleteSelectorsResult.error)
         throw new Error(deleteSelectorsResult.error);
 
-      const deleteSystemResult: Result<null> =
-        await this.#systemRepository.deleteOne(request.id);
-
-      if (deleteSystemResult.error) throw new Error(deleteSystemResult.error);
-
-      return Result.ok<null>();
-    } catch (error: any) {
-      return Result.fail<null>(
-        typeof error === 'string' ? error : error.message
+      const deleteSystemResult: string = await this.#systemRepository.deleteOne(
+        request.id
       );
+
+      return Result.ok(deleteSystemResult);
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 }

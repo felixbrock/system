@@ -15,7 +15,7 @@ export interface CreateWarningAuthDto {
   organizationId: string;
 }
 
-export type CreateWarningResponseDto = Result<WarningDto | null>;
+export type CreateWarningResponseDto = Result<WarningDto>;
 
 export class CreateWarning
   implements
@@ -29,10 +29,7 @@ export class CreateWarning
 
   #readSystem: ReadSystem;
 
-  public constructor(
-    updateSystem: UpdateSystem,
-    readSystem: ReadSystem
-  ) {
+  public constructor(updateSystem: UpdateSystem, readSystem: ReadSystem) {
     this.#updateSystem = updateSystem;
     this.#readSystem = readSystem;
   }
@@ -41,21 +38,17 @@ export class CreateWarning
     request: CreateWarningRequestDto,
     auth: CreateWarningAuthDto
   ): Promise<CreateWarningResponseDto> {
-    const warning: Result<Warning | null> = Warning.create({
+    const warning: Result<Warning> = Warning.create({
       selectorId: request.selectorId,
     });
     if (!warning.value) return warning;
 
     try {
-      const validatedRequest = await this.validateRequest(
-        request.systemId,
-        auth.organizationId
-      );
-      if (validatedRequest.error) throw new Error(validatedRequest.error);
+      await this.requestIsValid(request.systemId, auth.organizationId);
 
       const warningDto = buildWarningDto(warning.value);
 
-      const updateSystemResult: Result<SystemDto | null> =
+      const updateSystemResult: Result<SystemDto> =
         await this.#updateSystem.execute(
           {
             id: request.systemId,
@@ -68,18 +61,18 @@ export class CreateWarning
       if (!updateSystemResult.value)
         throw new Error(`Couldn't update system ${request.systemId}`);
 
-      return Result.ok<WarningDto>(warningDto);
-    } catch (error: any) {
-      return Result.fail<WarningDto>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(warningDto);
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 
-  private async validateRequest(
+  private async requestIsValid(
     systemId: string,
     organizationId: string
-  ): Promise<Result<null>> {
+  ): Promise<boolean> {
     const readSystemResult = await this.#readSystem.execute(
       { id: systemId },
       { organizationId }
@@ -87,11 +80,13 @@ export class CreateWarning
 
     if (!readSystemResult.success) throw new Error(readSystemResult.error);
     if (!readSystemResult.value)
-      throw new Error(`System with id ${systemId} does not exist`);
+      return Promise.reject(
+        new Error(`System with id ${systemId} does not exist`)
+      );
 
     if (readSystemResult.value.organizationId !== organizationId)
-      return Result.fail<null>(`Not authorized to perform action`);
+      return Promise.reject(new Error(`Not authorized to perform action`));
 
-    return Result.ok<null>(null);
+    return true;
   }
 }

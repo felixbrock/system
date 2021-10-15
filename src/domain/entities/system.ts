@@ -29,7 +29,7 @@ export class System {
   }
 
   public set name(name: string) {
-    if (!name) throw new Error('System name cannot be null');
+    if (!name) throw new Error('System must have name');
 
     this.#name = name;
   }
@@ -39,7 +39,7 @@ export class System {
   }
 
   public set organizationId(organizationId: string) {
-    if (!organizationId) throw new Error('OrganizationId cannot be null');
+    if (!organizationId) throw new Error('System must have organizationId');
 
     this.#organizationId = organizationId;
   }
@@ -67,10 +67,11 @@ export class System {
   public static create(properties: SystemProperties): Result<System> {
     if (!properties.id) return Result.fail('System must have id');
     if (!properties.name) return Result.fail('System must have name');
-    if(!properties.organizationId) return Result.fail ('System must have organizationId');
+    if (!properties.organizationId)
+      return Result.fail('System must have organizationId');
 
     const system = new System(properties);
-    return Result.ok<System>(system);
+    return Result.ok(system);
   }
 
   public addWarning(warning: Warning): void {

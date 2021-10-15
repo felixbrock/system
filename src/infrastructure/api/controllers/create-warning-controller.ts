@@ -29,11 +29,11 @@ export default class CreateWarningController extends BaseController {
     const { systemId } = req.params;
     const { selectorId } = req.body;
     if (systemId)
-      return Result.ok<CreateWarningRequestDto>({
+      return Result.ok({
         systemId,
         selectorId,
       });
-    return Result.fail<CreateWarningRequestDto>(
+    return Result.fail(
       'Cannot find request parameter systemId'
     );
   };
@@ -44,13 +44,13 @@ export default class CreateWarningController extends BaseController {
 
   protected async executeImpl(req: Request, res: Response): Promise<Response> {
     try {
-      const authHeader = req.headers.authorization;    
+      const authHeader = req.headers.authorization;
 
       if (!authHeader)
         return CreateWarningController.unauthorized(res, 'Unauthorized');
 
       const jwt = authHeader.split(' ')[1];
-    
+
       const getUserAccountInfoResult: Result<UserAccountInfo> =
         await CreateWarningController.getUserAccountInfo(
           jwt,
@@ -92,8 +92,12 @@ export default class CreateWarningController extends BaseController {
         useCaseResult.value,
         CodeHttp.CREATED
       );
-    } catch (error: any) {
-      return CreateWarningController.fail(res, error);
+    } catch (error: unknown) {
+      if (typeof error === 'string')
+        return CreateWarningController.fail(res, error);
+      if (error instanceof Error)
+        return CreateWarningController.fail(res, error);
+      return CreateWarningController.fail(res, 'Unknown error occured');
     }
   }
 }

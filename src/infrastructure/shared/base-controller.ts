@@ -57,7 +57,7 @@ export abstract class BaseController {
             userId: authPayload.username,
           },
           { jwt }
-        );              
+        );
 
       if (!getAccountsResult.value)
         throw new Error(`No account found for ${authPayload.username}`);
@@ -69,8 +69,10 @@ export abstract class BaseController {
         accountId: getAccountsResult.value[0].id,
         organizationId: getAccountsResult.value[0].organizationId,
       });
-    } catch (error: any) {
-      return Result.fail(error);
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 

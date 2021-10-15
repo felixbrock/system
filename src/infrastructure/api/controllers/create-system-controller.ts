@@ -73,8 +73,12 @@ export default class CreateSystemController extends BaseController {
         useCaseResult.value,
         CodeHttp.CREATED
       );
-    } catch (error: any) {
-      return CreateSystemController.fail(res, error);
+    } catch (error: unknown) {
+      if (typeof error === 'string')
+        return CreateSystemController.fail(res, error);
+      if (error instanceof Error)
+        return CreateSystemController.fail(res, error);
+      return CreateSystemController.fail(res, 'Unknown error occured');
     }
   }
 }

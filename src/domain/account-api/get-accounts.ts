@@ -35,11 +35,11 @@ export class GetAccounts
       if (!getAccountsResponse.length)
         throw new Error(`No accounts found for user id ${request.userId}`);
 
-      return Result.ok<AccountDto[]>(getAccountsResponse);
-    } catch (error: any) {
-      return Result.fail<AccountDto[]>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(getAccountsResponse);
+    } catch (error: unknown) {
+      if(typeof error === 'string') return Result.fail(error);
+      if(error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 }

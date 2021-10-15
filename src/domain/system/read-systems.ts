@@ -19,7 +19,7 @@ export interface ReadSystemsAuthDto {
   organizationId: string;
 }
 
-export type ReadSystemsResponseDto = Result<SystemDto[] | null>;
+export type ReadSystemsResponseDto = Result<SystemDto[]>;
 
 export class ReadSystems
   implements
@@ -36,19 +36,19 @@ export class ReadSystems
     auth: ReadSystemsAuthDto
   ): Promise<ReadSystemsResponseDto> {
     try {
-      const systems: System[] | null = await this.#systemRepository.findBy(
+      const systems: System[] = await this.#systemRepository.findBy(
         this.#buildSystemQueryDto(request, auth.organizationId)
       );
       if (!systems)
         throw new Error(`Queried systems do not exist`);
 
-      return Result.ok<SystemDto[]>(
+      return Result.ok(
         systems.map((system) => buildSystemDto(system))
       );
-    } catch (error: any) {
-      return Result.fail<null>(
-        typeof error === 'string' ? error : error.message
-      );
+    } catch (error: unknown) {
+      if(typeof error === 'string') return Result.fail(error);
+      if(error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 

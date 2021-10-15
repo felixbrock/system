@@ -1,6 +1,6 @@
 // TODO Violation of Dependency Rule
 import IUseCase from '../services/use-case';
-import { SystemDto} from './system-dto';
+import { SystemDto } from './system-dto';
 import Result from '../value-types/transient-types/result';
 import { Warning } from '../value-types/warning';
 import { WarningDto } from '../warning/warning-dto';
@@ -18,7 +18,7 @@ export interface UpdateSystemAuthDto {
   organizationId: string;
 }
 
-export type UpdateSystemResponseDto = Result<SystemDto | null>;
+export type UpdateSystemResponseDto = Result<SystemDto>;
 
 export class UpdateSystem
   implements
@@ -63,11 +63,11 @@ export class UpdateSystem
       await this.#systemRepository.updateOne(request.id, updateDto);
 
       // TODO - Doesn't return the right object. Fix.
-      return Result.ok<SystemDto>(readSystemResult.value);
-    } catch (error: any) {
-      return Result.fail<SystemDto>(
-        typeof error === 'string' ? error : error.message
-      );
+      return Result.ok(readSystemResult.value);
+    } catch (error: unknown) {
+      if (typeof error === 'string') return Result.fail(error);
+      if (error instanceof Error) return Result.fail(error.message);
+      return Result.fail('Unknown error occured');
     }
   }
 

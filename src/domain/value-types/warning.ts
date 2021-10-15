@@ -8,7 +8,7 @@ export interface WarningProperties {
 export class Warning {
   #createdOn: number;
 
-  #selectorId: string; 
+  #selectorId: string;
 
   public get createdOn(): number {
     return this.#createdOn;
@@ -23,10 +23,11 @@ export class Warning {
     this.#createdOn = properties.createdOn || Date.now();
   }
 
-  public static create(properties: WarningProperties): Result<Warning | null> {
-    if (!properties.selectorId) return Result.fail('Warning must contain corresponding selector id');
+  public static create(properties: WarningProperties): Result<Warning> {
+    if (!properties.selectorId)
+      return Result.fail('Warning must contain corresponding selector id');
 
     const warning = new Warning(properties);
-    return Result.ok<Warning>(warning);
+    return Result.ok(warning);
   }
 }
