@@ -1,5 +1,4 @@
 import { Warning } from '../value-types/warning';
-import Result from '../value-types/transient-types/result';
 
 export interface SystemProperties {
   id: string;
@@ -64,14 +63,13 @@ export class System {
     this.#modifiedOn = properties.modifiedOn || Date.now();
   }
 
-  public static create(properties: SystemProperties): Result<System> {
-    if (!properties.id) return Result.fail('System must have id');
-    if (!properties.name) return Result.fail('System must have name');
+  public static create(properties: SystemProperties): System {
+    if (!properties.id) throw new Error('System must have id');
+    if (!properties.name) throw new Error('System must have name');
     if (!properties.organizationId)
-      return Result.fail('System must have organizationId');
+      throw new Error('System must have organizationId');
 
-    const system = new System(properties);
-    return Result.ok(system);
+    return new System(properties);
   }
 
   public addWarning(warning: Warning): void {

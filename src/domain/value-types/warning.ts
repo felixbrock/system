@@ -1,4 +1,3 @@
-import Result from './transient-types/result';
 
 export interface WarningProperties {
   createdOn?: number;
@@ -23,11 +22,10 @@ export class Warning {
     this.#createdOn = properties.createdOn || Date.now();
   }
 
-  public static create(properties: WarningProperties): Result<Warning> {
+  public static create(properties: WarningProperties): Warning {
     if (!properties.selectorId)
-      return Result.fail('Warning must contain corresponding selector id');
+      throw new Error('Warning must contain corresponding selector id');
 
-    const warning = new Warning(properties);
-    return Result.ok(warning);
+    return new Warning(properties);
   }
 }

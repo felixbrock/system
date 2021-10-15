@@ -38,17 +38,16 @@ export class CreateWarning
     request: CreateWarningRequestDto,
     auth: CreateWarningAuthDto
   ): Promise<CreateWarningResponseDto> {
-    const warning: Result<Warning> = Warning.create({
-      selectorId: request.selectorId,
-    });
-    if (!warning.value) return warning;
-
     try {
+      const warning: Warning = Warning.create({
+        selectorId: request.selectorId,
+      });
+
       await this.requestIsValid(request.systemId, auth.organizationId);
 
-      const warningDto = buildWarningDto(warning.value);
+      const warningDto = buildWarningDto(warning);
 
-      const updateSystemResult: Result<SystemDto> =
+      const updateSystemResult: Result<string> =
         await this.#updateSystem.execute(
           {
             id: request.systemId,
@@ -57,7 +56,8 @@ export class CreateWarning
           { organizationId: auth.organizationId }
         );
 
-      if (updateSystemResult.error) throw new Error(updateSystemResult.error);
+      if (!updateSystemResult.success)
+        throw new Error(updateSystemResult.error);
       if (!updateSystemResult.value)
         throw new Error(`Couldn't update system ${request.systemId}`);
 

@@ -41,17 +41,13 @@ export class CreateSystem
     request: CreateSystemRequestDto,
     auth: CreateSystemAuthDto
   ): Promise<CreateSystemResponseDto> {
-    const system: Result<System> = this.#createSystem(
-      request,
-      auth.organizationId
-    );
-    if (!system.value) return system;
-
     try {
+      const system: System = this.#createSystem(request, auth.organizationId);
+
       const readSystemsResult: ReadSystemsResponseDto =
         await this.#readSystems.execute(
           {
-            name: system.value.name,
+            name: system.name,
           },
           { organizationId: auth.organizationId }
         );
@@ -63,9 +59,9 @@ export class CreateSystem
           `System ${readSystemsResult.value[0].name} is already registered under ${readSystemsResult.value[0].id}`
         );
 
-      await this.#systemRepository.insertOne(system.value);
+      await this.#systemRepository.insertOne(system);
 
-      return Result.ok(buildSystemDto(system.value));
+      return Result.ok(buildSystemDto(system));
     } catch (error: unknown) {
       if (typeof error === 'string') return Result.fail(error);
       if (error instanceof Error) return Result.fail(error.message);
@@ -76,7 +72,7 @@ export class CreateSystem
   #createSystem = (
     request: CreateSystemRequestDto,
     organizationId: string
-  ): Result<System> => {
+  ): System => {
     const systemProperties: SystemProperties = {
       id: new ObjectId().toHexString(),
       name: request.name,

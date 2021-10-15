@@ -25,17 +25,15 @@ export default class CreateWarningController extends BaseController {
     this.#getAccounts = getAccounts;
   }
 
-  #buildRequestDto = (req: Request): Result<CreateWarningRequestDto> => {
+  #buildRequestDto = (req: Request): CreateWarningRequestDto => {
     const { systemId } = req.params;
     const { selectorId } = req.body;
-    if (systemId)
-      return Result.ok({
-        systemId,
-        selectorId,
-      });
-    return Result.fail(
-      'Cannot find request parameter systemId'
-    );
+    if (!systemId) throw new Error('Cannot find request parameter systemId');
+
+    return {
+      systemId,
+      selectorId,
+    };
   };
 
   #buildAuthDto = (userAccountInfo: UserAccountInfo): CreateWarningAuthDto => ({
@@ -65,16 +63,8 @@ export default class CreateWarningController extends BaseController {
       if (!getUserAccountInfoResult.value)
         throw new Error('Authorization failed');
 
-      const buildDtoResult: Result<CreateWarningRequestDto> =
+      const buildDtoResult: CreateWarningRequestDto =
         this.#buildRequestDto(req);
-
-      if (buildDtoResult.error)
-        return CreateWarningController.badRequest(res, buildDtoResult.error);
-      if (!buildDtoResult.value)
-        return CreateWarningController.badRequest(
-          res,
-          'Invalid request parameters'
-        );
 
       const authDto: CreateWarningAuthDto = this.#buildAuthDto(
         getUserAccountInfoResult.value

@@ -18,7 +18,7 @@ export interface UpdateSystemAuthDto {
   organizationId: string;
 }
 
-export type UpdateSystemResponseDto = Result<SystemDto>;
+export type UpdateSystemResponseDto = Result<string>;
 
 export class UpdateSystem
   implements
@@ -60,10 +60,12 @@ export class UpdateSystem
 
       const updateDto = await this.#buildUpdateDto(request);
 
-      await this.#systemRepository.updateOne(request.id, updateDto);
+      const updateResult = await this.#systemRepository.updateOne(
+        request.id,
+        updateDto
+      );
 
-      // TODO - Doesn't return the right object. Fix.
-      return Result.ok(readSystemResult.value);
+      return Result.ok(updateResult);
     } catch (error: unknown) {
       if (typeof error === 'string') return Result.fail(error);
       if (error instanceof Error) return Result.fail(error.message);
@@ -78,19 +80,10 @@ export class UpdateSystem
 
     if (request.name) updateDto.name = request.name;
 
-    if (request.warning) {
-      const createResult = Warning.create({
+    if (request.warning)
+      updateDto.warning = Warning.create({
         selectorId: request.warning.selectorId,
       });
-      // TODO No uniform usage of Result.value Result.error and result.success. Fix.
-      if (createResult.error) throw new Error(createResult.error);
-      if (!createResult.value)
-        throw new Error(
-          `Creation of selector warning ${request.warning} failed`
-        );
-
-      updateDto.warning = createResult.value;
-    }
 
     updateDto.modifiedOn = Date.now();
 

@@ -229,14 +229,8 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     }
   };
 
-  #toEntity = (systemProperties: SystemProperties): System => {
-    const createSystemResult: Result<System> = System.create(systemProperties);
-
-    if (createSystemResult.error) throw new Error(createSystemResult.error);
-    if (!createSystemResult.value) throw new Error('System creation failed');
-
-    return createSystemResult.value;
-  };
+  #toEntity = (systemProperties: SystemProperties): System =>
+    System.create(systemProperties);
 
   #buildProperties = (system: SystemPersistence): SystemProperties => ({
     // eslint-disable-next-line no-underscore-dangle
@@ -244,16 +238,12 @@ export default class SystemRepositoryImpl implements ISystemRepository {
     name: system.name,
     organizationId: system.organizationId,
     modifiedOn: system.modifiedOn,
-    warnings: system.warnings.map((warning) => {
-      const warningResult = Warning.create({
+    warnings: system.warnings.map((warning) =>
+      Warning.create({
         createdOn: warning.createdOn,
         selectorId: warning.selectorId,
-      });
-      if (warningResult.value) return warningResult.value;
-      throw new Error(
-        warningResult.error || `Creation of system warning failed`
-      );
-    }),
+      })
+    ),
   });
 
   #toPersistence = (system: System): Document => ({
