@@ -14,7 +14,6 @@ import {
   SystemUpdateDto,
 } from '../../domain/system/i-system-repository';
 import { Warning } from '../../domain/value-types/warning';
-import Result from '../../domain/value-types/transient-types/result';
 import { close, connect, createClient } from './db/mongo-db';
 
 interface WarningPersistence {
